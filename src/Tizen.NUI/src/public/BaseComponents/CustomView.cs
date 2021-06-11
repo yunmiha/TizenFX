@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2021 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,9 +65,9 @@ namespace Tizen.NUI.BaseComponents
         /// <param name="behaviour">CustomView Behaviour</param>
         /// <param name="viewStyle">CustomView ViewStyle</param>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public CustomView(string typeName, CustomViewBehaviour behaviour, ViewStyle viewStyle) : base(typeName, new ViewWrapperImpl(behaviour), viewStyle)
+        public CustomView(string typeName, CustomViewBehaviour behaviour, ViewStyle viewStyle) : this(typeName, behaviour)
         {
-            Initialize();
+            InitializeStyle(viewStyle);
         }
 
         /// <summary>
@@ -138,14 +138,15 @@ namespace Tizen.NUI.BaseComponents
         }
 
         /// <summary>
-        /// This method is called after the control has been initialized.<br />
+        /// This method is called after the CustomView has been initialized.<br />
+        /// After OnInitialize, the view will apply the style if it exists in the theme or it was given from constructor.<br />
         /// Derived classes should do any second phase initialization by overriding this method.<br />
         /// </summary>
         /// <since_tizen> 3 </since_tizen>
         public virtual void OnInitialize()
         {
             SetAccessibilityConstructor(Role.Unknown);
-            AppendAccessibilityAttribute("t", this.GetType().Name);
+            AppendAccessibilityAttribute("class", this.GetType().Name);
         }
 
         /// <summary>
@@ -307,6 +308,7 @@ namespace Tizen.NUI.BaseComponents
         /// <param name="policy">The policy being set.</param>
         /// <param name="dimension">The policy is being set for.</param>
         /// <since_tizen> 3 </since_tizen>
+        [Obsolete("Deprecated. Since Tizen.NUI.ResizePolicyType is deprecated, OnSetResizePolicy is no longer supported. Please do not use this.")]
         public virtual void OnSetResizePolicy(ResizePolicyType policy, DimensionType dimension)
         {
         }
@@ -492,9 +494,9 @@ namespace Tizen.NUI.BaseComponents
         {
             if (name == AccessibilityActivateAction)
             {
-                if (this.ActivateSignal().Empty() == false)
+                if (ActivateSignal?.Empty() == false)
                 {
-                    this.ActivateSignal().Emit();
+                    ActivateSignal?.Emit();
                     return true;
                 }
                 else
@@ -504,9 +506,9 @@ namespace Tizen.NUI.BaseComponents
             }
             else if (name == AccessibilityReadingSkippedAction)
             {
-                if (this.ReadingSkippedSignal().Empty() == false)
+                if (ReadingSkippedSignal?.Empty() == false)
                 {
-                    this.ReadingSkippedSignal().Emit();
+                    ReadingSkippedSignal?.Emit();
                     return true;
                 }
                 else
@@ -516,9 +518,9 @@ namespace Tizen.NUI.BaseComponents
             }
             else if (name == AccessibilityReadingCancelledAction)
             {
-                if (this.ReadingCancelledSignal().Empty() == false)
+                if (ReadingCancelledSignal?.Empty() == false)
                 {
-                    this.ReadingCancelledSignal().Emit();
+                    ReadingCancelledSignal?.Emit();
                     return true;
                 }
                 else
@@ -528,9 +530,9 @@ namespace Tizen.NUI.BaseComponents
             }
             else if (name == AccessibilityReadingStoppedAction)
             {
-                if (this.ReadingStoppedSignal().Empty() == false)
+                if (ReadingStoppedSignal?.Empty() == false)
                 {
-                    this.ReadingStoppedSignal().Emit();
+                    ReadingStoppedSignal?.Emit();
                     return true;
                 }
                 else
@@ -540,9 +542,9 @@ namespace Tizen.NUI.BaseComponents
             }
             else if (name == AccessibilityReadingPausedAction)
             {
-                if (this.ReadingPausedSignal().Empty() == false)
+                if (ReadingPausedSignal?.Empty() == false)
                 {
-                    this.ReadingPausedSignal().Emit();
+                    ReadingPausedSignal?.Emit();
                     return true;
                 }
                 else
@@ -552,9 +554,9 @@ namespace Tizen.NUI.BaseComponents
             }
             else if (name == AccessibilityReadingResumedAction)
             {
-                if (this.ReadingResumedSignal().Empty() == false)
+                if (ReadingResumedSignal?.Empty() == false)
                 {
-                    this.ReadingResumedSignal().Emit();
+                    ReadingResumedSignal?.Emit();
                     return true;
                 }
                 else
@@ -916,13 +918,12 @@ namespace Tizen.NUI.BaseComponents
             viewWrapperImpl.OnTap = new ViewWrapperImpl.OnTapDelegate(OnTap);
             viewWrapperImpl.OnLongPress = new ViewWrapperImpl.OnLongPressDelegate(OnLongPress);
 
-            // Make sure CustomView is initialized.
-            OnInitialize();
-
             // Set the StyleName the name of the View
             // We have to do this because the StyleManager on Native side can't workout it out
             // This will also ensure that the style of views/visuals initialized above are applied by the style manager.
             SetStyleName(this.GetType().Name);
+
+            OnInitialize();
         }
     }
 }

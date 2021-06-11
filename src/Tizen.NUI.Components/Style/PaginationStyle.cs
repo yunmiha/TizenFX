@@ -39,9 +39,9 @@ namespace Tizen.NUI.Components
 
         /// <summary>The IndicatorImageUrlSelector bindable property.</summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public static readonly BindableProperty IndicatorImageUrlSelectorProperty = BindableProperty.Create("IndicatorImageUrlSelector", typeof(Selector<string>), typeof(PaginationStyle), null, propertyChanged: (bindable, oldValue, newValue) =>
+        public static readonly BindableProperty IndicatorImageUrlSelectorProperty = BindableProperty.Create("IndicatorImageUrl", typeof(Selector<string>), typeof(PaginationStyle), null, propertyChanged: (bindable, oldValue, newValue) =>
         {
-            ((PaginationStyle)bindable).indicatorImageUrl = ((Selector<string>)newValue)?.Clone();
+            ((PaginationStyle)bindable).indicatorImageUrl = (Selector<string>)newValue;
         },
         defaultValueCreator: (bindable) =>
         {
@@ -110,10 +110,7 @@ namespace Tizen.NUI.Components
             set => SetValue(IndicatorSpacingProperty, value);
         }
 
-        /// <summary>
-        /// Retrieves a copy of PaginationStyle.
-        /// </summary>
-        /// <param name="bindableObject">The style that need to copy.</param>
+        /// <inheritdoc/>
         /// <since_tizen> 8 </since_tizen>
         public override void CopyFrom(BindableObject bindableObject)
         {

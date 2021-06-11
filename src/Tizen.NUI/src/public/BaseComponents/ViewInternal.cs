@@ -16,7 +16,9 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace Tizen.NUI.BaseComponents
 {
@@ -26,8 +28,6 @@ namespace Tizen.NUI.BaseComponents
     /// <since_tizen> 3 </since_tizen>
     public partial class View
     {
-        private ViewSelectorData selectorData;
-
         internal string styleName;
 
         /// <summary>
@@ -822,13 +822,6 @@ namespace Tizen.NUI.BaseComponents
             return ret;
         }
 
-        internal void SetColor(Vector4 color)
-        {
-            Interop.ActorInternal.SetColor(SwigCPtr, Vector4.getCPtr(color));
-            if (NDalicPINVOKE.SWIGPendingException.Pending)
-                throw NDalicPINVOKE.SWIGPendingException.Retrieve();
-        }
-
         internal Vector4 GetCurrentColor()
         {
             Vector4 ret = new Vector4(Interop.ActorInternal.GetCurrentColor(SwigCPtr), true);
@@ -1020,6 +1013,8 @@ namespace Tizen.NUI.BaseComponents
             Children.Remove(child);
             child.InternalParent = null;
 
+            RemoveChildBindableObject(child);
+
             if (ChildRemoved != null)
             {
                 ChildRemovedEventArgs e = new ChildRemovedEventArgs
@@ -1048,12 +1043,15 @@ namespace Tizen.NUI.BaseComponents
         {
             if (backgroundExtraData == null) return;
 
+            var cornerRadius = backgroundExtraData.CornerRadius == null ? new PropertyValue() : new PropertyValue(backgroundExtraData.CornerRadius);
+
             // Apply to the background visual
             PropertyMap backgroundMap = new PropertyMap();
             PropertyValue background = Tizen.NUI.Object.GetProperty(SwigCPtr, View.Property.BACKGROUND);
+
             if (background.Get(backgroundMap) && !backgroundMap.Empty())
             {
-                backgroundMap[Visual.Property.CornerRadius] = new PropertyValue(backgroundExtraData.CornerRadius);
+                backgroundMap[Visual.Property.CornerRadius] = cornerRadius;
                 backgroundMap[Visual.Property.CornerRadiusPolicy] = new PropertyValue((int)backgroundExtraData.CornerRadiusPolicy);
                 var temp = new PropertyValue(backgroundMap);
                 Tizen.NUI.Object.SetProperty(SwigCPtr, View.Property.BACKGROUND, temp);
@@ -1067,7 +1065,7 @@ namespace Tizen.NUI.BaseComponents
             PropertyValue shadow = Tizen.NUI.Object.GetProperty(SwigCPtr, View.Property.SHADOW);
             if (shadow.Get(shadowMap) && !shadowMap.Empty())
             {
-                shadowMap[Visual.Property.CornerRadius] = new PropertyValue(backgroundExtraData.CornerRadius);
+                shadowMap[Visual.Property.CornerRadius] = cornerRadius;
                 shadowMap[Visual.Property.CornerRadiusPolicy] = new PropertyValue((int)backgroundExtraData.CornerRadiusPolicy);
                 var temp = new PropertyValue(shadowMap);
                 Tizen.NUI.Object.SetProperty(SwigCPtr, View.Property.SHADOW, temp);
@@ -1075,15 +1073,31 @@ namespace Tizen.NUI.BaseComponents
             }
             shadowMap.Dispose();
             shadow.Dispose();
+            cornerRadius.Dispose();
         }
 
-        internal void UpdateStyle()
+        /// TODO open as a protected level
+        internal virtual void ApplyBorderline()
         {
-            ViewStyle newStyle;
-            if (styleName == null) newStyle = ThemeManager.GetStyle(GetType());
-            else newStyle = ThemeManager.GetStyle(styleName);
+            if (backgroundExtraData == null) return;
 
-            if (newStyle != null && (viewStyle == null || viewStyle.GetType() == newStyle.GetType())) ApplyStyle(newStyle);
+            var borderlineColor = backgroundExtraData.BorderlineColor == null ? new PropertyValue(Color.Black) : new PropertyValue(backgroundExtraData.BorderlineColor);
+
+            // Apply to the background visual
+            PropertyMap backgroundMap = new PropertyMap();
+            PropertyValue background = Tizen.NUI.Object.GetProperty(SwigCPtr, View.Property.BACKGROUND);
+            if (background.Get(backgroundMap) && !backgroundMap.Empty())
+            {
+                backgroundMap[Visual.Property.BorderlineWidth] = new PropertyValue(backgroundExtraData.BorderlineWidth);
+                backgroundMap[Visual.Property.BorderlineColor] = borderlineColor;
+                backgroundMap[Visual.Property.BorderlineOffset] = new PropertyValue(backgroundExtraData.BorderlineOffset);
+                var temp = new PropertyValue(backgroundMap);
+                Tizen.NUI.Object.SetProperty(SwigCPtr, View.Property.BACKGROUND, temp);
+                temp.Dispose();
+            }
+            backgroundMap.Dispose();
+            background.Dispose();
+            borderlineColor.Dispose();
         }
 
         /// <summary>
@@ -1120,8 +1134,8 @@ namespace Tizen.NUI.BaseComponents
                 //Called by User
                 //Release your own managed resources here.
                 //You should release all of your own disposable objects here.
-                selectorData?.Reset(this);
-                if (themeChangeSensitive)
+                themeData?.selectorData?.Reset(this);
+                if (ThemeChangeSensitive)
                 {
                     ThemeManager.ThemeChangedInternal.Remove(OnThemeChanged);
                 }
@@ -1130,14 +1144,17 @@ namespace Tizen.NUI.BaseComponents
             //Release your own unmanaged resources here.
             //You should not access any managed member here except static instance.
             //because the execution order of Finalizes is non-deterministic.
-            if (this != null)
+
+            // equivalent to "if (this != null)". more clear to understand.
+            if (this.HasBody())
             {
                 DisConnectFromSignals();
-            }
 
-            foreach (View view in Children)
-            {
-                view.InternalParent = null;
+                foreach (View view in Children)
+                {
+                    view.InternalParent = null;
+                }
+
             }
 
             base.Dispose(type);
@@ -1296,6 +1313,16 @@ namespace Tizen.NUI.BaseComponents
             SwigCPtr = currentCPtr;
         }
 
+        /// <summary>
+        /// Apply initial style to the view.
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        protected void InitializeStyle(ViewStyle style = null)
+        {
+            if (style != null) ApplyStyle(style); // Use given style
+            else UpdateStyle(); // Use style in the current theme
+        }
+
         private View ConvertIdToView(uint id)
         {
             View view = GetParent()?.FindCurrentChildById(id);
@@ -1373,12 +1400,23 @@ namespace Tizen.NUI.BaseComponents
             return false;
         }
 
-        private void InitializeStyle(ViewStyle style)
+        private void UpdateStyle()
         {
-            if (style != null) ApplyStyle(style.Clone());   // Use given style
-            else if (ThemeManager.ThemeApplied) UpdateStyle(); // Use style in the current theme
+            ViewStyle newStyle;
+            if (string.IsNullOrEmpty(styleName)) newStyle = ThemeManager.GetStyleWithoutClone(GetType());
+            else newStyle = ThemeManager.GetStyleWithoutClone(styleName);
+
+            if (newStyle != null)
+            {
+                ApplyStyle(newStyle);
+            }
         }
 
-        private ViewSelectorData EnsureSelectorData() => selectorData ?? (selectorData = new ViewSelectorData());
+        private ViewSelectorData EnsureSelectorData()
+        {
+            if (themeData == null) themeData = new ThemeData();
+
+            return themeData.selectorData ?? (themeData.selectorData = new ViewSelectorData());
+        }
     }
 }

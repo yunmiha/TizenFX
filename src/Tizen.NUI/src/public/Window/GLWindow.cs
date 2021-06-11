@@ -27,7 +27,7 @@ namespace Tizen.NUI
     /// <summary>
     /// The GLWindow class is to draw with native GLES.<br />
     /// This class is the special window. It is for native GLES application.<br />
-    /// So, some special funtions and type are supported.<br />
+    /// So, some special functions and type are supported.<br />
     /// In addition, basic window's functions are supported, too.<br />
     /// </summary>
     [EditorBrowsable(EditorBrowsableState.Never)]
@@ -51,7 +51,7 @@ namespace Tizen.NUI
 
         /// <summary>
         /// Creates an initialized handle to a new GLWindow.<br />
-        /// This API can create GLWindow with specifc option.<br />
+        /// This API can create GLWindow with specific option.<br />
         /// </summary>
         /// <param name="name">The name for GL window. </param>
         /// <param name="windowPosition">The position and size of the Window.</param>
@@ -133,26 +133,6 @@ namespace Tizen.NUI
                 Interop.GLWindow.GlWindowSetPositionSize(SwigCPtr, Rectangle.getCPtr(ret));
                 ret.Dispose();
             }
-        }
-
-        /// <summary>
-        /// This Enumeration is used the GLES version for EGL configuration.<br />
-        /// If the device can not support GLES version 3.0 over, the version will be chosen with GLES version 2.0<br />
-        /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public enum GLESVersion
-        {
-            /// <summary>
-            /// GLES version 2.0
-            /// </summary>
-            [EditorBrowsable(EditorBrowsableState.Never)]
-            Version_2_0 = 0,
-
-            /// <summary>
-            /// GLES version 3.0
-            /// </summary>
-            [EditorBrowsable(EditorBrowsableState.Never)]
-            Version_3_0
         }
 
         /// <summary>
@@ -492,6 +472,27 @@ namespace Tizen.NUI
         public void Destroy()
         {
             this.Dispose();
+        }
+
+        /// <summary>
+        /// Gets or sets a Rendeirng Mode of GLWindow.
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public GLRenderingMode RenderingMode
+        {
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            get
+            {
+                GLRenderingMode mode = (GLRenderingMode)Interop.GLWindow.GlWindowGetRenderingMode(SwigCPtr);
+                if (NDalicPINVOKE.SWIGPendingException.Pending) throw new InvalidOperationException("FATAL: get Exception", NDalicPINVOKE.SWIGPendingException.Retrieve());
+                return mode;
+            }
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            set
+            {
+                Interop.GLWindow.GlWindowSetRenderingMode(SwigCPtr, (int)value);
+                if (NDalicPINVOKE.SWIGPendingException.Pending) throw NDalicPINVOKE.SWIGPendingException.Retrieve();
+            }
         }
 
         /// <summary>

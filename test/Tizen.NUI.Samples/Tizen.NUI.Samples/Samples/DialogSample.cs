@@ -11,7 +11,7 @@ namespace Tizen.NUI.Samples
         {
             var window = NUIApplication.GetDefaultWindow();
 
-            oldPageCount = window.GetDefaultNavigator().NavigationPages.Count;
+            oldPageCount = window.GetDefaultNavigator().PageCount;
 
             var button = new Button()
             {
@@ -27,19 +27,23 @@ namespace Tizen.NUI.Samples
                     BackgroundColor = Color.White,
                     Size = new Size(180, 180),
                     HorizontalAlignment = HorizontalAlignment.Center,
-                    VerticalAlignment = VerticalAlignment.Center
+                    VerticalAlignment = VerticalAlignment.Center,
                 };
 
-                Navigator.ShowDialog(textLabel);
+                DialogPage.ShowDialog(textLabel);
             };
 
-            window.GetDefaultNavigator().Push(new Page(button));
+            var page = new ContentPage()
+            {
+                Content = button,
+            };
+            window.GetDefaultNavigator().Push(page);
         }
 
         public void Deactivate()
         {
             var window = NUIApplication.GetDefaultWindow();
-            var newPageCount = window.GetDefaultNavigator().NavigationPages.Count;
+            var newPageCount = window.GetDefaultNavigator().PageCount;
 
             for (int i = 0; i < (newPageCount - oldPageCount); i++)
             {

@@ -258,7 +258,7 @@ namespace Tizen.NUI.BaseComponents
         ///    parent.InterceptTouchEvent += OnInterceptTouchEvent;
         ///    View view = child.GetParent() as View;
         ///    view.DisallowInterceptTouchEvent = true;
-        ///  This prevents the parent from interceping touch.
+        ///  This prevents the parent from intercepting touch.
         /// </summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public bool DisallowInterceptTouchEvent { get; set; }
@@ -1286,6 +1286,57 @@ namespace Tizen.NUI.BaseComponents
                     };
                     WindowWheelEventHandler?.Invoke(this, arg);
                 }
+            }
+        }
+
+        /// <summary>
+        /// The expanded touch area.
+        /// TouchArea can expand the view's touchable area.<br/>
+        /// If you set the TouchAreaOffset on an view, when you touch the view, the touch area is used rather than the size of the view.<br/>
+        /// </summary>
+        /// <remarks>
+        /// This is based on the top left x, y coordinates.<br/>
+        /// For example) <br/>
+        /// <code>
+        ///  view.Size = new Size(100, 100);
+        ///  view.TouchAreaOffset = new Offset(-10, 20, 30, -40); // left, right, bottom, top
+        /// </code>
+        /// Then, touch area is 130x170.<br/>
+        /// This is view.width + TouchAreaOffset.right - TouchAreaOffset.left and view.height + TouchAreaOffset.bottom - TouchAreaOffset.top <br/>
+        /// +---------------------+ <br/>
+        /// |         ^           | <br/>
+        /// |         |           | <br/>
+        /// |         | -40       | <br/>
+        /// |         |           | <br/>
+        /// |         |           | <br/>
+        /// |    +----+----+      | <br/>
+        /// |    |         |      | <br/>
+        /// | -10|         | 20   | <br/>
+        /// |&lt;---+         +-----&gt;| <br/>
+        /// |    |         |      | <br/>
+        /// |    |         |      | <br/>
+        /// |    +----+----+      | <br/>
+        /// |         |           | <br/>
+        /// |         | 30        | <br/>
+        /// |         |           | <br/>
+        /// |         v           | <br/>
+        /// +---------------------+ <br/>
+        /// </remarks>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public Offset TouchAreaOffset
+        {
+            get
+            {
+                Interop.ActorInternal.GetTouchAreaOffset(SwigCPtr, out int left, out int right, out int bottom, out int top);
+                if (NDalicPINVOKE.SWIGPendingException.Pending)
+                    throw NDalicPINVOKE.SWIGPendingException.Retrieve();
+                return new Offset(left, right, bottom, top);
+            }
+            set
+            {
+                Interop.ActorInternal.SetTouchAreaOffset(SwigCPtr, value.Left, value.Right, value.Bottom, value.Top);
+                if (NDalicPINVOKE.SWIGPendingException.Pending)
+                    throw NDalicPINVOKE.SWIGPendingException.Retrieve();
             }
         }
 

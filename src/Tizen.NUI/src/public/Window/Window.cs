@@ -34,15 +34,13 @@ namespace Tizen.NUI
     /// <since_tizen> 3 </since_tizen>
     public partial class Window : BaseHandle
     {
-        private static readonly Window instance = Application.Instance?.GetWindow();
-
         private HandleRef stageCPtr;
         private Layer rootLayer;
         private string windowTitle;
         private List<Layer> childLayers = new List<Layer>();
         private LayoutController localController;
 
-        private bool IsSupportedMultiWindow()
+        static internal bool IsSupportedMultiWindow()
         {
             bool isSupported = false;
             Information.TryGetValue("http://tizen.org/feature/opengles.surfaceless_context", out isSupported);
@@ -260,17 +258,35 @@ namespace Tizen.NUI
         }
 
         /// <summary>
+        /// Enumeration for result of window operation.
+        /// </summary>
+        internal enum OperationResult
+        {
+            /// <summary>
+            /// Failed for unknown reason
+            /// </summary>
+            UnknownError = 0,
+            /// <summary>
+            /// Succeed
+            /// </summary>
+            Succeed,
+            /// <summary>
+            /// Permission denied
+            /// </summary>
+            PermissionDenied,
+            /// <summary>
+            /// The operation is not supported.
+            /// </summary>
+            NotSupported,
+        }
+
+
+        /// <summary>
         /// The stage instance property (read-only).<br />
         /// Gets the current window.<br />
         /// </summary>
         /// <since_tizen> 3 </since_tizen>
-        public static Window Instance
-        {
-            get
-            {
-                return instance;
-            }
-        }
+        public static Window Instance { get; internal set; }
 
         /// <summary>
         /// Gets or sets a window type.
@@ -655,9 +671,9 @@ namespace Tizen.NUI
         /// <since_tizen> 3 </since_tizen>
         public bool SetNotificationLevel(NotificationLevel level)
         {
-            bool ret = Interop.Window.SetNotificationLevel(SwigCPtr, (int)level);
+            var ret = (OperationResult)Interop.Window.SetNotificationLevel(SwigCPtr, (int)level);
             if (NDalicPINVOKE.SWIGPendingException.Pending) throw NDalicPINVOKE.SWIGPendingException.Retrieve();
-            return ret;
+            return ret == OperationResult.Succeed;
         }
 
         /// <summary>
@@ -709,9 +725,9 @@ namespace Tizen.NUI
         /// <since_tizen> 4 </since_tizen>
         public bool SetScreenOffMode(ScreenOffMode screenOffMode)
         {
-            bool ret = Interop.Window.SetScreenOffMode(SwigCPtr, (int)screenOffMode);
+            var ret = (OperationResult)Interop.Window.SetScreenOffMode(SwigCPtr, (int)screenOffMode);
             if (NDalicPINVOKE.SWIGPendingException.Pending) throw NDalicPINVOKE.SWIGPendingException.Retrieve();
-            return ret;
+            return ret == OperationResult.Succeed;
         }
 
         /// <summary>
@@ -734,9 +750,9 @@ namespace Tizen.NUI
         /// <since_tizen> 3 </since_tizen>
         public bool SetBrightness(int brightness)
         {
-            bool ret = Interop.Window.SetBrightness(SwigCPtr, brightness);
+            var ret = (OperationResult)Interop.Window.SetBrightness(SwigCPtr, brightness);
             if (NDalicPINVOKE.SWIGPendingException.Pending) throw NDalicPINVOKE.SWIGPendingException.Retrieve();
-            return ret;
+            return ret == OperationResult.Succeed;
         }
 
         /// <summary>
@@ -1237,7 +1253,9 @@ namespace Tizen.NUI
             return ret;
         }
 
-        internal RenderTaskList GetRenderTaskList()
+        /// This will be public opened in next tizen after ACR done. Before ACR, need to be hidden as inhouse API.
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public RenderTaskList GetRenderTaskList()
         {
             RenderTaskList ret = new RenderTaskList(Interop.Stage.GetRenderTaskList(stageCPtr), true);
             if (NDalicPINVOKE.SWIGPendingException.Pending) throw NDalicPINVOKE.SWIGPendingException.Retrieve();
@@ -1535,5 +1553,23 @@ namespace Tizen.NUI
 
             if (NDalicPINVOKE.SWIGPendingException.Pending) throw NDalicPINVOKE.SWIGPendingException.Retrieve();
         }
+
+        /// <summary>
+        /// Search through this Window for a Layer with the given unique ID.
+        /// </summary>
+        /// <param name="id">The ID of the Layer to find.</param>
+        /// <remarks>Hidden-API</remarks>
+        /// <returns>A handle to the Layer if found, or an empty handle if not.</returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public Layer FindLayerByID(uint id)
+        {
+            Layer defaultLayer = this.GetDefaultLayer();
+            IntPtr cPtr = Interop.Actor.FindChildById(defaultLayer.SwigCPtr, id);
+            Layer ret = this.GetInstanceSafely<Layer>(cPtr);
+
+            if (NDalicPINVOKE.SWIGPendingException.Pending) throw NDalicPINVOKE.SWIGPendingException.Retrieve();
+            return ret;
+        }
+
     }
 }

@@ -25,47 +25,53 @@ namespace Tizen.NUI
     [EditorBrowsable(EditorBrowsableState.Never)]
     public class WebSettings : Disposable
     {
-        private bool allowMixedContents;
-        private bool enableSpatialNavigation;
-        private bool enableWebSecurity;
-        private bool allowFileAccessFromExternalUrl;
-        private bool allowScriptsOpenWindows;
+        private bool mixedContentsAllowed;
+        private bool spatialNavigationEnabled;
+        private bool webSecurityEnabled;
+        private bool cacheBuilderEnabled;
+        private bool doNotTrackEnabled;
+        private bool fileAccessFromExternalUrlAllowed;
+        private bool scriptsOpenWindowsAllowed;
+        private bool scrollbarThumbFocusNotificationsUsed;
+        private bool viewportMetaTag;
 
         internal WebSettings(global::System.IntPtr cPtr, bool cMemoryOwn) : base(cPtr, cMemoryOwn)
         {
         }
 
         /// <summary>
-        /// Allow Mixed Contents
+        /// Allows mixed contents or not.
         /// </summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public bool AllowMixedContents
+        public bool MixedContentsAllowed
         {
             get
             {
-                return allowMixedContents;
+                return mixedContentsAllowed;
             }
             set
             {
-                allowMixedContents = value;
                 Interop.WebSettings.AllowMixedContents(SwigCPtr, value);
+                if (NDalicPINVOKE.SWIGPendingException.Pending) throw NDalicPINVOKE.SWIGPendingException.Retrieve();
+                mixedContentsAllowed = value;
             }
         }
 
         /// <summary>
-        /// Enable Spatial Navigation.
+        /// Enables spatial navigation or not.
         /// </summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public bool EnableSpatialNavigation
+        public bool SpatialNavigationEnabled
         {
             get
             {
-                return enableSpatialNavigation;
+                return spatialNavigationEnabled;
             }
             set
             {
-                enableSpatialNavigation = value;
                 Interop.WebSettings.EnableSpatialNavigation(SwigCPtr, value);
+                if (NDalicPINVOKE.SWIGPendingException.Pending) throw NDalicPINVOKE.SWIGPendingException.Retrieve();
+                spatialNavigationEnabled = value;
             }
         }
 
@@ -82,48 +88,104 @@ namespace Tizen.NUI
             set
             {
                 Interop.WebSettings.SetDefaultFontSize(SwigCPtr, value);
+                if (NDalicPINVOKE.SWIGPendingException.Pending) throw NDalicPINVOKE.SWIGPendingException.Retrieve();
             }
         }
 
         /// <summary>
-        /// Enable web security.
+        /// Enables web security or not.
         /// </summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public bool EnableWebSecurity
+        public bool WebSecurityEnabled
         {
             get
             {
-                return enableWebSecurity;
+                return webSecurityEnabled;
             }
             set
             {
-                enableWebSecurity = value;
                 Interop.WebSettings.EnableWebSecurity(SwigCPtr, value);
+                if (NDalicPINVOKE.SWIGPendingException.Pending) throw NDalicPINVOKE.SWIGPendingException.Retrieve();
+                webSecurityEnabled = value;
             }
         }
 
         /// <summary>
-        /// Allow File Access From External Url.
+        /// Enable cache builer
         /// </summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public bool AllowFileAccessFromExternalUrl
+        public bool CacheBuilderEnabled
+        {
+            get 
+            {
+                return cacheBuilderEnabled;
+            }
+            set 
+            {
+                Interop.WebSettings.EnableCacheBuilder(SwigCPtr, value);
+                if (NDalicPINVOKE.SWIGPendingException.Pending) throw NDalicPINVOKE.SWIGPendingException.Retrieve();
+                cacheBuilderEnabled = value;
+            }
+        }
+
+        /// <summary>
+        /// Enable do not track, to protect user privacy security.
+        /// </summary>
+        public bool DoNotTrackEnabled
         {
             get
             {
-                return allowFileAccessFromExternalUrl;
+                return doNotTrackEnabled;
             }
             set
             {
-                allowFileAccessFromExternalUrl = value;
-                Interop.WebSettings.AllowFileAccessFromExternalUrl(SwigCPtr, value);
+                Interop.WebSettings.EnableDoNotTrack(SwigCPtr, value);
+                if (NDalicPINVOKE.SWIGPendingException.Pending) throw NDalicPINVOKE.SWIGPendingException.Retrieve();
+                doNotTrackEnabled = value;
             }
         }
 
         /// <summary>
-        /// Enable JavaScript.
+        /// Use scrollbar thumb focus notifications
         /// </summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public bool EnableJavaScript
+        public bool ScrollbarThumbFocusNotificationsUsed
+        {
+            get
+            {
+                return scrollbarThumbFocusNotificationsUsed;
+            }
+            set
+            {
+                Interop.WebSettings.UseScrollbarThumbFocusNotifications(SwigCPtr, value);
+                if (NDalicPINVOKE.SWIGPendingException.Pending) throw NDalicPINVOKE.SWIGPendingException.Retrieve();
+                scrollbarThumbFocusNotificationsUsed = value;
+            }
+        }
+
+        /// <summary>
+        /// Allows file access from external url or not.
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public bool FileAccessFromExternalUrlAllowed
+        {
+            get
+            {
+                return fileAccessFromExternalUrlAllowed;
+            }
+            set
+            {
+                Interop.WebSettings.AllowFileAccessFromExternalUrl(SwigCPtr, value);
+                if (NDalicPINVOKE.SWIGPendingException.Pending) throw NDalicPINVOKE.SWIGPendingException.Retrieve();
+                fileAccessFromExternalUrlAllowed = value;
+            }
+        }
+
+        /// <summary>
+        /// Enables JavaScript or not.
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public bool JavaScriptEnabled
         {
             get
             {
@@ -132,44 +194,251 @@ namespace Tizen.NUI
             set
             {
                 Interop.WebSettings.EnableJavaScript(SwigCPtr, value);
+                if (NDalicPINVOKE.SWIGPendingException.Pending) throw NDalicPINVOKE.SWIGPendingException.Retrieve();
             }
         }
 
         /// <summary>
-        /// Allow Scripts Open Windows.
+        /// Enable auto fitting
         /// </summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public bool AllowScriptsOpenWindows
+        public bool AutoFittingEnabled
         {
             get
             {
-                return allowScriptsOpenWindows;
+                return Interop.WebSettings.IsAutoFittingEnabled(SwigCPtr);
             }
             set
             {
-                allowScriptsOpenWindows = value;
-                Interop.WebSettings.AllowScriptsOpenWindows(SwigCPtr, value);
+                Interop.WebSettings.EnableAutoFitting(SwigCPtr, value);
+                if (NDalicPINVOKE.SWIGPendingException.Pending) throw NDalicPINVOKE.SWIGPendingException.Retrieve();
             }
         }
 
         /// <summary>
-        /// Allow Images Load Automatically.
+        /// Enable plugins
         /// </summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public bool AllowImagesLoadAutomatically
+        public bool PluginsEnabled
         {
             get
             {
-                return Interop.WebSettings.AreImagesAutomaticallyLoaded(SwigCPtr);
+                return Interop.WebSettings.ArePluginsEnabled(SwigCPtr);
+            }
+            set 
+            {
+                Interop.WebSettings.EnablePlugins(SwigCPtr, value);
+                if (NDalicPINVOKE.SWIGPendingException.Pending) throw NDalicPINVOKE.SWIGPendingException.Retrieve();
+            }
+        }
+
+        /// <summary>
+        /// Enable private browsing
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public bool PrivateBrowsingEnabled
+        {
+            get
+            {
+                return Interop.WebSettings.IsPrivateBrowsingEnabled(SwigCPtr);
+            }
+            set
+            {
+                Interop.WebSettings.EnablePrivateBrowsing(SwigCPtr, value);
+                if (NDalicPINVOKE.SWIGPendingException.Pending) throw NDalicPINVOKE.SWIGPendingException.Retrieve();
+            }
+        }
+
+        /// <summary>
+        /// Enable link magnifier
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public bool LinkMagnifierEnabled
+        {
+            get
+            {
+                return Interop.WebSettings.IsLinkMagnifierEnabled(SwigCPtr);
+            }
+            set
+            {
+                Interop.WebSettings.EnableLinkMagnifier(SwigCPtr, value);
+                if (NDalicPINVOKE.SWIGPendingException.Pending) throw NDalicPINVOKE.SWIGPendingException.Retrieve();
+            }
+        }
+
+        /// <summary>
+        /// Use keypad without user action
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public bool KeypadWithoutUserActionUsed
+        {
+            get
+            {
+                return Interop.WebSettings.IsKeypadWithoutUserActionUsed(SwigCPtr);
+            }
+            set
+            {
+                Interop.WebSettings.UseKeypadWithoutUserAction(SwigCPtr, value);
+                if (NDalicPINVOKE.SWIGPendingException.Pending) throw NDalicPINVOKE.SWIGPendingException.Retrieve();
+            }
+        }
+
+        /// <summary>
+        /// Enable autofill password form
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public bool AutofillPasswordFormEnabled
+        {
+            get
+            {
+                return Interop.WebSettings.IsAutofillPasswordFormEnabled(SwigCPtr);
+            }
+            set
+            {
+                Interop.WebSettings.EnableAutofillPasswordForm(SwigCPtr, value);
+                if (NDalicPINVOKE.SWIGPendingException.Pending) throw NDalicPINVOKE.SWIGPendingException.Retrieve();
+            }
+        }
+
+        /// <summary>
+        /// Enable form candidate data
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public bool FormCandidateDataEnabled
+        {
+            get
+            {
+                return Interop.WebSettings.IsFormCandidateDataEnabled(SwigCPtr);
+            }
+            set
+            {
+                Interop.WebSettings.EnableFormCandidateData(SwigCPtr, value);
+                if (NDalicPINVOKE.SWIGPendingException.Pending) throw NDalicPINVOKE.SWIGPendingException.Retrieve();
+            }
+        }
+
+        /// <summary>
+        /// Enable text selection
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public bool TextSelectionEnabled
+        {
+            get
+            {
+                return Interop.WebSettings.IsTextSelectionEnabled(SwigCPtr);
+            }
+            set
+            {
+                Interop.WebSettings.EnableTextSelection(SwigCPtr, value);
+                if (NDalicPINVOKE.SWIGPendingException.Pending) throw NDalicPINVOKE.SWIGPendingException.Retrieve();
+            }
+        }
+
+        /// <summary>
+        /// Enable text autosizing
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public bool TextAutosizingEnabled
+        {
+            get
+            {
+                return Interop.WebSettings.IsTextAutosizingEnabled(SwigCPtr);
+            }
+            set
+            {
+                Interop.WebSettings.EnableTextAutosizing(SwigCPtr, value);
+                if (NDalicPINVOKE.SWIGPendingException.Pending) throw NDalicPINVOKE.SWIGPendingException.Retrieve();
+            }
+        }
+
+        /// <summary>
+        /// Enable arrow scroll
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public bool ArrowScrollEnabled
+        {
+            get
+            {
+                return Interop.WebSettings.IsArrowScrollEnabled(SwigCPtr);
+            }
+            set
+            {
+                Interop.WebSettings.EnableArrowScroll(SwigCPtr, value);
+                if (NDalicPINVOKE.SWIGPendingException.Pending) throw NDalicPINVOKE.SWIGPendingException.Retrieve();
+            }
+        }
+
+        /// <summary>
+        /// Enable clipboard
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public bool ClipboardEnabled
+        {
+            get
+            {
+                return Interop.WebSettings.IsClipboardEnabled(SwigCPtr);
+            }
+            set
+            {
+                Interop.WebSettings.EnableClipboard(SwigCPtr, value);
+                if (NDalicPINVOKE.SWIGPendingException.Pending) throw NDalicPINVOKE.SWIGPendingException.Retrieve();
+            }
+        }
+
+        /// <summary>
+        /// Enable ime panel
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public bool ImePanelEnabled
+        {
+            get
+            {
+                return Interop.WebSettings.IsImePanelEnabled(SwigCPtr);
+            }
+            set
+            {
+                Interop.WebSettings.EnableImePanel(SwigCPtr, value);
+                if (NDalicPINVOKE.SWIGPendingException.Pending) throw NDalicPINVOKE.SWIGPendingException.Retrieve();
+            }
+        }
+
+        /// <summary>
+        /// Allows scripts open windows or not.
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public bool ScriptsOpenWindowsAllowed
+        {
+            get
+            {
+                return scriptsOpenWindowsAllowed;
+            }
+            set
+            {
+                Interop.WebSettings.AllowScriptsOpenWindows(SwigCPtr, value);
+                if (NDalicPINVOKE.SWIGPendingException.Pending) throw NDalicPINVOKE.SWIGPendingException.Retrieve();
+                scriptsOpenWindowsAllowed = value;
+            }
+        }
+
+        /// <summary>
+        /// Allow images load automatically or not.
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public bool AutomaticImageLoadingAllowed
+        {
+            get
+            {
+                return Interop.WebSettings.AreImagesLoadedAutomatically(SwigCPtr);
             }
             set
             {
                 Interop.WebSettings.AllowImagesLoadAutomatically(SwigCPtr, value);
+                if (NDalicPINVOKE.SWIGPendingException.Pending) throw NDalicPINVOKE.SWIGPendingException.Retrieve();
             }
         }
 
         /// <summary>
-        /// Default Text Encoding Name.
+        /// Default text encoding name.
         /// </summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public string DefaultTextEncodingName
@@ -181,12 +450,84 @@ namespace Tizen.NUI
             set
             {
                 Interop.WebSettings.SetDefaultTextEncodingName(SwigCPtr, value);
+                if (NDalicPINVOKE.SWIGPendingException.Pending) throw NDalicPINVOKE.SWIGPendingException.Retrieve();
             }
         }
 
-        internal static global::System.Runtime.InteropServices.HandleRef getCPtr(WebSettings obj)
+        /// <summary>
+        ///  Viewport meta tag.
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public bool ViewportMetaTag
         {
-            return (obj == null) ? new global::System.Runtime.InteropServices.HandleRef(null, global::System.IntPtr.Zero) : obj.SwigCPtr;
+            get
+            {
+                return viewportMetaTag;
+            }
+            set
+            {
+                Interop.WebSettings.SetViewportMetaTag(SwigCPtr, value);
+                if (NDalicPINVOKE.SWIGPendingException.Pending) throw NDalicPINVOKE.SWIGPendingException.Retrieve();
+                viewportMetaTag = value;
+            }
+        }
+
+        /// <summary>
+        ///  Force zoom
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public bool ZoomForced
+        {
+            get
+            {
+                return Interop.WebSettings.IsZoomForced(SwigCPtr);
+            }
+            set
+            {
+                Interop.WebSettings.SetForceZoom(SwigCPtr, value);
+                if (NDalicPINVOKE.SWIGPendingException.Pending) throw NDalicPINVOKE.SWIGPendingException.Retrieve();
+            }
+        }
+
+        /// <summary>
+        ///  Enable text zoom
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public bool TextZoomEnabled
+        {
+            get
+            {
+                return Interop.WebSettings.IsTextZoomEnabled(SwigCPtr);
+            }
+            set
+            {
+                Interop.WebSettings.SetTextZoomEnabled(SwigCPtr, value);
+                if (NDalicPINVOKE.SWIGPendingException.Pending) throw NDalicPINVOKE.SWIGPendingException.Retrieve();
+            }
+        }
+
+        /// <summary>
+        ///  Enable extra feature
+        /// </summary>
+        /// <param name="str">The string of extra feature.</param>
+        /// <param name="tag">Enable or disable.</param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public void EnableExtraFeature(string str, bool tag)
+        {
+            Interop.WebSettings.SetExtraFeature(SwigCPtr, str, tag);
+            if (NDalicPINVOKE.SWIGPendingException.Pending) throw NDalicPINVOKE.SWIGPendingException.Retrieve();
+        }
+
+        /// <summary>
+        ///  Enable extra feature
+        /// </summary>
+        /// <param name="str">The string of extra feature.</param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public bool IsExtraFeatureEnabled(string str)
+        {
+            bool ret = Interop.WebSettings.IsExtraFeatureEnabled(SwigCPtr, str);
+            if (NDalicPINVOKE.SWIGPendingException.Pending) throw NDalicPINVOKE.SWIGPendingException.Retrieve();
+            return ret;
         }
     }
 }

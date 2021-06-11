@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright(c) 2019 Samsung Electronics Co., Ltd.
+ * Copyright(c) 2021 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,27 +46,30 @@ namespace Tizen.NUI.Components
         }
 
         /// <summary>
-        /// Get or set track image.
+        /// Gets or sets track image.
         /// </summary>
         /// <since_tizen> 8 </since_tizen>
         public ImageViewStyle Track { get; set; } = new ImageViewStyle();
 
         /// <summary>
-        /// Get or set progress image.
+        /// Gets or sets progress image.
         /// </summary>
         /// <since_tizen> 8 </since_tizen>
         public ImageViewStyle Progress { get; set; } = new ImageViewStyle();
 
         /// <summary>
-        /// Get or set buffer image.
+        /// Gets or sets buffer image.
         /// </summary>
         /// <since_tizen> 8 </since_tizen>
         public ImageViewStyle Buffer { get; set; } = new ImageViewStyle();
 
         /// <summary>
-        /// Style's clone function.
+        /// Gets or sets indeterminate progress resource.
         /// </summary>
-        /// <param name="bindableObject">The style that need to copy.</param>
+        /// <since_tizen> 9 </since_tizen>
+        public string IndeterminateImageUrl { get; set; }
+
+        /// <inheritdoc/>
         /// <since_tizen> 8 </since_tizen>
         public override void CopyFrom(BindableObject bindableObject)
         {
@@ -77,6 +80,7 @@ namespace Tizen.NUI.Components
                 Track.CopyFrom(progressStyle.Track);
                 Progress.CopyFrom(progressStyle.Progress);
                 Buffer.CopyFrom(progressStyle.Buffer);
+                IndeterminateImageUrl = progressStyle.IndeterminateImageUrl;
             }
         }
     }

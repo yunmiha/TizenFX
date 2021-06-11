@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using Tizen.NUI.BaseComponents;
 using Tizen.NUI.Components;
 using Tizen.NUI.Binding;
@@ -13,13 +14,23 @@ namespace Tizen.NUI.Samples
         int itemCount = 500;
         string selectedItem;
         ItemSelectionMode selMode;
+        ObservableCollection<Gallery> gallerySource;
+        Gallery insertMenu = new Gallery(999, "Insert item to 3rd");
+        Gallery deleteMenu = new Gallery(999, "Delete item at 3rd");
+        Gallery moveMenu = new Gallery(999, "Move last item to 3rd");
+
 
         public void Activate()
         {
             Window window = NUIApplication.GetDefaultWindow();
 
-            var myViewModelSource = new GalleryViewModel(itemCount);
-            selMode = ItemSelectionMode.SingleSelection;
+            var myViewModelSource = gallerySource = new GalleryViewModel(itemCount);
+            // Add test menu options.
+            gallerySource.Insert(0, moveMenu);
+            gallerySource.Insert(0, deleteMenu);
+            gallerySource.Insert(0, insertMenu);
+
+            selMode = ItemSelectionMode.Single;
             DefaultTitleItem myTitle = new DefaultTitleItem();
             myTitle.Text = "Linear Sample Count["+itemCount+"]";
             //Set Width Specification as MatchParent to fit the Item width with parent View.
@@ -32,32 +43,36 @@ namespace Tizen.NUI.Samples
                 ItemTemplate = new DataTemplate(() =>
                 {
                     var rand = new Random();
-                    RecyclerViewItem item = new RecyclerViewItem();
-                    item.WidthSpecification = LayoutParamPolicies.MatchParent;
-                    item.HeightSpecification = 100;
-                    item.BackgroundColor = new Color((float)rand.NextDouble(), (float)rand.NextDouble(), (float)rand.NextDouble(), 1);
-                    /*
                     DefaultLinearItem item = new DefaultLinearItem();
                     //Set Width Specification as MatchParent to fit the Item width with parent View.
                     item.WidthSpecification = LayoutParamPolicies.MatchParent;
+
                     //Decorate Label
                     item.Label.SetBinding(TextLabel.TextProperty, "ViewLabel");
                     item.Label.HorizontalAlignment = HorizontalAlignment.Begin;
+
+                    //Decorate SubLabel
+                    if ((rand.Next() % 2) == 0)
+                    {
+                        item.SubLabel.SetBinding(TextLabel.TextProperty, "Name");
+                        item.SubLabel.HorizontalAlignment = HorizontalAlignment.Begin;
+                    }
+
                     //Decorate Icon
                     item.Icon.SetBinding(ImageView.ResourceUrlProperty, "ImageUrl");
-                    item.Icon.WidthSpecification = 80;
-                    item.Icon.HeightSpecification = 80;
+                    item.Icon.WidthSpecification = 48;
+                    item.Icon.HeightSpecification = 48;
+
                     //Decorate Extra RadioButton.
                     //[NOTE] This is sample of RadioButton usage in CollectionView.
                     // RadioButton change their selection by IsSelectedProperty bindings with
-                    // SelectionChanged event with SingleSelection ItemSelectionMode of CollectionView.
-                    // be aware of there are no RadioButtonGroup. 
+                    // SelectionChanged event with Single ItemSelectionMode of CollectionView.
+                    // be aware of there are no RadioButtonGroup.
                     item.Extra = new RadioButton();
                     //FIXME : SetBinding in RadioButton crashed as Sensitive Property is disposed.
                     //item.Extra.SetBinding(RadioButton.IsSelectedProperty, "Selected");
-                    item.Extra.WidthSpecification = 80;
-                    item.Extra.HeightSpecification = 80;
-                    */
+                    item.Extra.WidthSpecification = 48;
+                    item.Extra.HeightSpecification = 48;
 
                     return item;
                 }),
@@ -91,16 +106,36 @@ namespace Tizen.NUI.Samples
             {
                 if (item == null) break;
                 Gallery selItem = (Gallery)item;
-                selItem.Selected = true;
+                //selItem.Selected = true;
                 selectedItem = selItem.Name;
+
+                // Check test menu options.
+                if (selItem == insertMenu)
+                {
+                    // Insert new item to index 3.
+                    Random rand = new Random();
+                    int idx = rand.Next(1000);
+                    gallerySource.Insert(3, new Gallery(idx, "Inserted Item"));
+                }
+                else if (selItem == deleteMenu)
+                {
+                    // Remove item in index 3.
+                    gallerySource.RemoveAt(3);
+                }
+                else if (selItem == moveMenu)
+                {
+                    // Move last indexed item to index 3.
+                    gallerySource.Move(gallerySource.Count - 1, 3);                    
+                }
                 //Tizen.Log.Debug("NUI", "LSH :: Selected: {0}", selItem.ViewLabel);
             }
             if (colView.Header != null && colView.Header is DefaultTitleItem)
             {
                 DefaultTitleItem title = (DefaultTitleItem)colView.Header;
-                title.Text = "Linear Sample Count[" + itemCount + (selectedItem != null ? "] Selected [" + selectedItem + "]" : "]");
+                title.Text = "Linear Sample Count[" + gallerySource.Count + (selectedItem != null ? "] Selected [" + selectedItem + "]" : "]");
             }
         }
+
         public void Deactivate()
         {
             if (colView != null)

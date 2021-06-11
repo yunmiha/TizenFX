@@ -22,21 +22,20 @@ using Tizen.NUI.BaseComponents;
 namespace Tizen.NUI
 {
     /// <summary>
-    /// Setting screen transition options.
-    /// This is used to describe the transition of NUIApplication.
+    /// This TransitionOptions class is a class to control Transition motion.
+    /// This class includes multiple options for the Transition.
+    /// NUI supports various kinds of Transitions such as App transition, Page transition, and so on.
     /// </summary>
     /// <seealso cref="NUIApplication.TransitionOptions" />
-    [EditorBrowsable(EditorBrowsableState.Never)]
+    /// <since_tizen> 9 </since_tizen>
     public class TransitionOptions : IDisposable
     {
         private bool disposed = false;
         private FrameProvider frameProvider;
         private DefaultFrameBroker frameBroker;
-
         private bool enableTransition = false;
         private Window mainWindow;
         private View animatedTarget;
-        private string sharedId;
 
         /// <summary>
         /// Initializes the TransitionOptions class.
@@ -46,6 +45,14 @@ namespace Tizen.NUI
         public TransitionOptions(Window window)
         {
             mainWindow = window;
+        }
+
+        /// <summary>
+        /// Initializes the TransitionOptions class.
+        /// </summary>
+        /// <since_tizen> 9 </since_tizen>
+        public TransitionOptions()
+        {
         }
 
         /// <summary>
@@ -97,20 +104,21 @@ namespace Tizen.NUI
         }
 
         /// <summary>
-        /// Gets or sets the Shared object Id
+        /// String tag to find View pair to be used in Page transition.
+        /// If there is a View have same TransitionTag in a next or previous Page.
+        /// The View will be pair for transition.
+        /// This is property for Page Transition.
         /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public String SharedId
-        {
-            set
-            {
-                sharedId = value;
-            }
-            get
-            {
-                return sharedId;
-            }
-        }
+        /// <since_tizen> 9 </since_tizen>
+        public string TransitionTag { set; get; } = null;
+
+        /// <summary>
+        /// Property for Page transition.
+        /// A View could be transition with its child Views or without them.
+        /// Default value is false
+        /// </summary>
+        /// <since_tizen> 9 </since_tizen>
+        public bool TransitionWithChild { set; get; } = false;
 
         /// <summary>
         /// Gets or sets the forward animation of launching

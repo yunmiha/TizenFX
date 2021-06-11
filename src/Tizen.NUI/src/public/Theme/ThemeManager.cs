@@ -15,6 +15,10 @@
  *
  */
 
+#if !PROFILE_TV
+#define ExternalThemeEnabled
+#endif
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -24,17 +28,17 @@ using Tizen.NUI.BaseComponents;
 namespace Tizen.NUI
 {
     /// <summary>
-    /// This static module provides methods that can manage NUI <seealso cref="Theme"/>.
+    /// This static module provides methods that can manage NUI <see cref="Theme"/>.
     /// </summary>
     /// <example>
-    /// To apply custom theme to the application, try <seealso cref="ApplyTheme(Theme)"/>.
+    /// To apply custom theme to the application, try <see cref="ApplyTheme(Theme)"/>.
     /// <code>
     /// var customTheme = new Theme(res + "customThemeFile.xaml");
     /// ThemeManager.ApplyTheme(customTheme);
     /// </code>
     /// </example>
     /// <summary></summary>
-    [EditorBrowsable(EditorBrowsableState.Never)]
+    /// <since_tizen> 9 </since_tizen>
     public static class ThemeManager
     {
         private static Theme defaultTheme;
@@ -48,9 +52,9 @@ namespace Tizen.NUI
         }
 
         /// <summary>
-        /// An event invoked after the theme has changed by <seealso cref="ApplyTheme(Theme)"/>.
+        /// An event invoked after the theme has changed by <see cref="ApplyTheme(Theme)"/>.
         /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
+        /// <since_tizen> 9 </since_tizen>
         public static event EventHandler<ThemeChangedEventArgs> ThemeChanged;
 
         /// <summary>
@@ -75,16 +79,16 @@ namespace Tizen.NUI
             }
         }
 
-        internal static bool ThemeApplied => defaultTheme.Count > 0 || (currentTheme != null && currentTheme.Count > 0);
+        private static bool ThemeApplied => defaultTheme.Count > 0 || (currentTheme != null && currentTheme.Count > 0);
 
         /// <summary>
         /// Apply theme to the NUI.
-        /// This will change the appreance of the existing components with property <seealso cref="View.ThemeChangeSensitive"/> on.
+        /// This will change the appearance of the existing components with property <seealso cref="View.ThemeChangeSensitive"/> on.
         /// This also affects all components created afterwards.
         /// </summary>
         /// <param name="theme">The theme instance to be applied.</param>
         /// <exception cref="ArgumentNullException">Thrown when the given theme is null.</exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
+        /// <since_tizen> 9 </since_tizen>
         public static void ApplyTheme(Theme theme)
         {
             var newTheme = (Theme)theme?.Clone() ?? throw new ArgumentNullException(nameof(theme));
@@ -114,7 +118,8 @@ namespace Tizen.NUI
 
             if (theme != null)
             {
-                CurrentTheme = theme;
+                defaultTheme = theme;
+                NotifyThemeChanged();
                 return true;
             }
 
@@ -125,33 +130,52 @@ namespace Tizen.NUI
 
         /// <summary>
         /// Load a style with style name in the current theme.
-        /// For components, the style name is a component name (e.g. Button) in normal case.
+        /// For components, the default style name of a component is a component name with namespace (e.g. Tizen.NUI.Components.Button).
         /// </summary>
         /// <param name="styleName">The style name.</param>
         /// <exception cref="ArgumentNullException">Thrown when the given styleName is null.</exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
+        /// <since_tizen> 9 </since_tizen>
         public static ViewStyle GetStyle(string styleName)
         {
             if (styleName == null) throw new ArgumentNullException(nameof(styleName));
+            return GetStyleWithoutClone(styleName)?.Clone();
+        }
 
+        /// <summary>
+        /// Load a style with view type in the current theme.
+        /// If it failed to find a style with the given type, it will try with it's parent type until it succeeds.
+        /// </summary>
+        /// <param name="viewType"> The type of the view. Full name of the given type will be a key to find a style in the current theme. (e.g. Tizen.NUI.Components.Button) </param>
+        /// <exception cref="ArgumentNullException">Thrown when the given viewType is null.</exception>
+        /// <since_tizen> 9 </since_tizen>
+        public static ViewStyle GetStyle(Type viewType)
+        {
+            if (viewType == null) throw new ArgumentNullException(nameof(viewType));
+            return GetStyleWithoutClone(viewType)?.Clone();
+        }
+
+        /// <summary>
+        /// Load a style with style name in the current theme.
+        /// </summary>
+        /// <param name="styleName">The style name.</param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        internal static ViewStyle GetStyleWithoutClone(string styleName)
+        {
             if (!ThemeApplied) return null;
 
-            return (currentTheme?.GetStyle(styleName) ?? defaultTheme.GetStyle(styleName))?.Clone();
+            return currentTheme?.GetStyle(styleName) ?? defaultTheme.GetStyle(styleName);
         }
 
         /// <summary>
         /// Load a style with View type in the current theme.
         /// </summary>
         /// <param name="viewType">The type of View.</param>
-        /// <exception cref="ArgumentNullException">Thrown when the given viewType is null.</exception>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public static ViewStyle GetStyle(Type viewType)
+        internal static ViewStyle GetStyleWithoutClone(Type viewType)
         {
-            if (viewType == null) throw new ArgumentNullException(nameof(viewType));
-
             if (!ThemeApplied) return null;
 
-            return (currentTheme?.GetStyle(viewType) ?? defaultTheme.GetStyle(viewType))?.Clone();
+            return currentTheme?.GetStyle(viewType) ?? defaultTheme.GetStyle(viewType);
         }
 
         /// <summary>
@@ -195,6 +219,7 @@ namespace Tizen.NUI
         /// <param name="externalTheme">The external theme instance to be applied as base.</param>
         internal static void ApplyExternalTheme(IExternalTheme externalTheme)
         {
+#if ExternalThemeEnabled
             Debug.Assert(defaultTheme != null);
 
             if (defaultTheme.HasSameIdAndVersion(externalTheme))
@@ -229,6 +254,7 @@ namespace Tizen.NUI
 
             defaultTheme = newTheme;
             NotifyThemeChanged();
+#endif
         }
 
         internal static void AddPackageTheme(IThemeCreator themeCreator)
@@ -242,12 +268,13 @@ namespace Tizen.NUI
             var packageTheme = themeCreator.Create();
             Debug.Assert(packageTheme != null);
 
+#if ExternalThemeEnabled
             var externalTheme = ExternalThemeManager.GetCurrentTheme();
             if (externalTheme != null && !packageTheme.HasSameIdAndVersion(externalTheme))
             {
                 packageTheme.ApplyExternalTheme(externalTheme, themeCreator.GetExternalThemeKeyListSet());
             }
-
+#endif
             if (defaultTheme == null)
             {
                 defaultTheme = new Theme()

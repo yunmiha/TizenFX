@@ -16,8 +16,6 @@
 using System;
 using System.ComponentModel;
 using Tizen.NUI.BaseComponents;
-using Tizen.NUI.Binding;
-using Tizen.NUI.Components.Extension;
 using Tizen.NUI.Accessibility;
 
 namespace Tizen.NUI.Components
@@ -36,28 +34,6 @@ namespace Tizen.NUI.Components
         private Size prevSize;
         private DefaultTitleItemStyle ItemStyle => ViewStyle as DefaultTitleItemStyle;
 
-        /// <summary>
-        /// Return a copied Style instance of DefaultTitleItem
-        /// </summary>
-        /// <remarks>
-        /// It returns copied Style instance and changing it does not effect to the DefaultTitleItem.
-        /// Style setting is possible by using constructor or the function of ApplyStyle(ViewStyle viewStyle)
-        /// </remarks>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public new DefaultTitleItemStyle Style
-        {
-            get
-            {
-                var result = new DefaultTitleItemStyle(ItemStyle);
-                result.CopyPropertiesFromView(this);
-                if (itemLabel) result.Label.CopyPropertiesFromView(itemLabel);
-                if (itemIcon) result.Icon.CopyPropertiesFromView(itemIcon);
-                if (itemSeperator) result.Seperator.CopyPropertiesFromView(itemSeperator);
-
-                return result;
-            }
-        }
-
         static DefaultTitleItem() { }
 
         /// <summary>
@@ -66,7 +42,6 @@ namespace Tizen.NUI.Components
         [EditorBrowsable(EditorBrowsableState.Never)]
         public DefaultTitleItem() : base()
         {
-            Initialize();
         }
 
         /// <summary>
@@ -76,7 +51,6 @@ namespace Tizen.NUI.Components
         [EditorBrowsable(EditorBrowsableState.Never)]
         public DefaultTitleItem(string style) : base(style)
         {
-            Initialize();
         }
 
         /// <summary>
@@ -86,7 +60,6 @@ namespace Tizen.NUI.Components
         [EditorBrowsable(EditorBrowsableState.Never)]
         public DefaultTitleItem(DefaultTitleItemStyle itemStyle) : base(itemStyle)
         {
-            Initialize();
         }
 
         /// <summary>
@@ -181,7 +154,7 @@ namespace Tizen.NUI.Components
         }
 
         /// <summary>
-        /// Seperator devider of DefaultTitleItem. it will place at the end of item.
+        /// Seperator divider of DefaultTitleItem. it will place at the end of item.
         /// </summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public View Seperator
@@ -220,7 +193,11 @@ namespace Tizen.NUI.Components
                 if (itemIcon != null)
                     itemIcon.ApplyStyle(defaultStyle.Icon);
                 if (itemSeperator != null)
+                {
                     itemSeperator.ApplyStyle(defaultStyle.Seperator);
+                    //FIXME : currently padding and margin are not applied by ApplyStyle automatically as missing binding features.
+                    itemSeperator.Margin = new Extents(defaultStyle.Seperator.Margin);
+                }
             }
         }
 
@@ -271,12 +248,7 @@ namespace Tizen.NUI.Components
         [EditorBrowsable(EditorBrowsableState.Never)]
         protected override void MeasureChild()
         {
-            if (itemLabel)
-            {
-                var pad = Padding;
-                var margin = itemLabel.Margin;
-                itemLabel.SizeWidth = SizeWidth - pad.Start - pad.End - margin.Start - margin.End;
-            }
+            // Do measure in here if necessary.
         }
 
         /// <inheritdoc/>
@@ -352,17 +324,22 @@ namespace Tizen.NUI.Components
             {
                 //Extension : Extension?.OnDispose(this);
 
+                // Arugable to disposing user-created members.
+                /*
                 if (itemIcon != null)
                 {
                     Utility.Dispose(itemIcon);
                 }
+                */
                 if (itemLabel != null)
                 {
                     Utility.Dispose(itemLabel);
+                    itemLabel = null;
                 }
                 if (itemSeperator != null)
                 {
                     Utility.Dispose(itemSeperator);
+                    itemSeperator = null;
                 }
             }
 
@@ -379,7 +356,11 @@ namespace Tizen.NUI.Components
             return new DefaultTitleItemStyle();
         }
 
-        private void Initialize()
+        /// <summary>
+        /// Initializes AT-SPI object.
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public override void OnInitialize()
         {
             base.OnInitialize();
             Layout = new RelativeLayout();

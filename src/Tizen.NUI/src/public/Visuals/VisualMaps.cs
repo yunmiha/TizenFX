@@ -76,17 +76,16 @@ namespace Tizen.NUI
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1051:Do not declare visible instance fields", Justification = "<Pending>")]
         protected VisualFittingModeType? _visualFittingMode = null;
 
-        /// <summary>
-        /// The corner radius value of the visual.
-        /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        private float? cornerRadius = null;
+        private Vector4 cornerRadius = null;
+        private float? borderlineWidth = null;
+        private Color borderlineColor = null;
+        private float? borderlineOffset = null;
 
         /// <summary>
         /// The map for visual.
         /// </summary>
         /// <since_tizen> 3 </since_tizen>
-        [Obsolete("Deprecated in API9, Will be removed in API11, Plese not use _comonlyUsedMap")]
+        [Obsolete("Deprecated in API9, Will be removed in API11, Please not use _comonlyUsedMap")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1051:Do not declare visible instance fields", Justification = "<Pending>")]
         protected PropertyMap _commonlyUsedMap = null;
 
@@ -424,7 +423,7 @@ namespace Tizen.NUI
 
         /// <summary>
         /// Gets or sets the origin of the visual within its control area.<br />
-        /// By default, the origin is center.<br />
+        /// By default, the origin is AlignType.TopBegin.<br />
         /// Optional.
         /// </summary>
         /// <since_tizen> 3 </since_tizen>
@@ -432,7 +431,7 @@ namespace Tizen.NUI
         {
             get
             {
-                return visualOrigin ?? (Visual.AlignType.Center);
+                return visualOrigin ?? (Visual.AlignType.TopBegin);
             }
             set
             {
@@ -443,7 +442,7 @@ namespace Tizen.NUI
 
         /// <summary>
         /// Gets or sets the anchor point of the visual.<br />
-        /// By default, the anchor point is center.<br />
+        /// By default, the anchor point is AlignType.TopBegin.<br />
         /// Optional.
         /// </summary>
         /// <since_tizen> 3 </since_tizen>
@@ -451,7 +450,7 @@ namespace Tizen.NUI
         {
             get
             {
-                return visualAnchorPoint ?? (Visual.AlignType.Center);
+                return visualAnchorPoint ?? (Visual.AlignType.TopBegin);
             }
             set
             {
@@ -613,11 +612,11 @@ namespace Tizen.NUI
         /// The corner radius of the visual.
         /// </summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public float CornerRadius
+        public Vector4 CornerRadius
         {
-            protected get
+            get
             {
-                return cornerRadius ?? (0.0f);
+                return cornerRadius;
             }
             set
             {
@@ -626,6 +625,56 @@ namespace Tizen.NUI
             }
         }
 
+        /// <summary>
+        /// The borderline width of the visual.
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public float BorderlineWidth
+        {
+            get
+            {
+                return borderlineWidth ?? (0.0f);
+            }
+            set
+            {
+                borderlineWidth = value;
+                UpdateVisual();
+            }
+        }
+
+        /// <summary>
+        /// The borderline color of the visual.
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public Color BorderlineColor
+        {
+            get
+            {
+                return borderlineColor;
+            }
+            set
+            {
+                borderlineColor = value;
+                UpdateVisual();
+            }
+        }
+
+        /// <summary>
+        /// The borderline offset of the visual.
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public float BorderlineOffset
+        {
+            get
+            {
+                return borderlineOffset ?? (0.0f);
+            }
+            set
+            {
+                borderlineOffset = value;
+                UpdateVisual();
+            }
+        }
         internal string Name
         {
             set;
@@ -706,8 +755,26 @@ namespace Tizen.NUI
             }
             if (cornerRadius != null)
             {
-                PropertyValue temp = new PropertyValue((int)cornerRadius);
+                PropertyValue temp = new PropertyValue(cornerRadius);
                 _outputVisualMap.Add(Visual.Property.CornerRadius, temp);
+                temp.Dispose();
+            }
+            if (borderlineWidth != null)
+            {
+                PropertyValue temp = new PropertyValue((float)borderlineWidth);
+                _outputVisualMap.Add(Visual.Property.BorderlineWidth, temp);
+                temp.Dispose();
+            }
+            if (borderlineColor != null)
+            {
+                PropertyValue temp = new PropertyValue(borderlineColor);
+                _outputVisualMap.Add(Visual.Property.BorderlineColor, temp);
+                temp.Dispose();
+            }
+            if (borderlineOffset != null)
+            {
+                PropertyValue temp = new PropertyValue((float)borderlineOffset);
+                _outputVisualMap.Add(Visual.Property.BorderlineOffset, temp);
                 temp.Dispose();
             }
         }
@@ -771,6 +838,8 @@ namespace Tizen.NUI
                 visualSize?.Dispose();
                 visualSizePolicy?.Dispose();
                 visualTransformMap?.Dispose();
+                cornerRadius?.Dispose();
+                borderlineColor?.Dispose();
             }
             disposed = true;
         }

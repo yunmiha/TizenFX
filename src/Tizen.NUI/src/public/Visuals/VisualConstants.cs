@@ -310,12 +310,12 @@ namespace Tizen.NUI
         /// </summary>
         Fill,
         /// <summary>
-        /// The visual should be scaled to fit, preserving aspect ratio. The visual will be fillled without empty area, and outside is cropped away.
+        /// The visual should be scaled to fit, preserving aspect ratio. The visual will be filled without empty area, and outside is cropped away.
         /// </summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
         OverFitKeepAspectRatio,
         /// <summary>
-        /// The visual should keep original size of image. it is not scaled and not strecthed.
+        /// The visual should keep original size of image. it is not scaled and not stretched.
         /// </summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
         Center,
@@ -500,6 +500,25 @@ namespace Tizen.NUI
             /// </summary>
             [EditorBrowsable(EditorBrowsableState.Never)]
             public static readonly int CornerRadiusPolicy = NDalic.VisualPropertyMixColor + 4;
+            /// <summary>
+            /// The borderline width of the visual.
+            /// </summary>
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            public static readonly int BorderlineWidth = NDalic.VisualPropertyMixColor + 5;
+            /// <summary>
+            /// The borderline color of the visual.
+            /// </summary>
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            public static readonly int BorderlineColor = NDalic.VisualPropertyMixColor + 6;
+            /// <summary>
+            /// The borderline offset of the visual.
+            /// Relative position of borderline. (percentage [-1.0f to 1.0f]).
+            /// If -1.0f, borderline draw inside of visual
+            /// If 1.0f, borderline draw outside of visual
+            /// If 0.0f, half draw inside and half draw outside of visual
+            /// </summary>
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            public static readonly int BorderlineOffset = NDalic.VisualPropertyMixColor + 7;
         }
 
         /// <summary>
@@ -536,7 +555,7 @@ namespace Tizen.NUI
         }
 
         /// <summary>
-        /// This specifies visaul align types.
+        /// This specifies visual align types.
         /// </summary>
         /// <since_tizen> 3 </since_tizen>
         public enum AlignType

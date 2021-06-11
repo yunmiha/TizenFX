@@ -319,7 +319,7 @@ namespace Tizen.NUI.Xaml
         static IList<XmlnsDefinitionAttribute> s_xmlnsDefinitions;
         public static IList<Assembly> s_assemblies = new List<Assembly>();// = new Assembly[]{};
 
-        static void GatherXmlnsDefinitionAttributes()
+        static void GatherXmlnsDefinitionAttributes(Assembly currentAssembly)
         {
             //this could be extended to look for [XmlnsDefinition] in all assemblies
             // var assemblies = new [] {
@@ -327,7 +327,33 @@ namespace Tizen.NUI.Xaml
             // 	//typeof(XamlLoader).GetTypeInfo().Assembly,
             // };
             // s_assemblies = new Assembly[]{typeof(View).GetTypeInfo().Assembly};
-            s_assemblies.Add(typeof(View).GetTypeInfo().Assembly);
+            if (null == currentAssembly)
+            {
+                s_assemblies.Add(typeof(View).GetTypeInfo().Assembly);
+            }
+            else
+            {
+                s_assemblies.Add(currentAssembly);
+
+                var assemblies = currentAssembly?.GetReferencedAssemblies();
+
+                if (null != assemblies)
+                {
+                    foreach (var assembly in assemblies)
+                    {
+                        try
+                        {
+                            s_assemblies.Add(Assembly.Load(assembly));
+                        }
+                        catch (Exception e)
+                        {
+                            Tizen.Log.Fatal("NUI", "Load referenced assemblies e.Message: " + e.Message);
+                            Console.WriteLine("\n[FATAL] Load referenced assemblies e.Message: {0}\n", e.Message);
+                            throw new XamlParseException(e.Message);
+                        }
+                    }
+                }
+            }
 
             s_xmlnsDefinitions = new List<XmlnsDefinitionAttribute>();
 
@@ -343,12 +369,17 @@ namespace Tizen.NUI.Xaml
             out XamlParseException exception)
         {
             if (s_xmlnsDefinitions == null)
-                GatherXmlnsDefinitionAttributes();
+                GatherXmlnsDefinitionAttributes(currentAssembly);
 
             var namespaceURI = xmlType.NamespaceUri;
             var elementName = xmlType.Name;
             var typeArguments = xmlType.TypeArguments;
             exception = null;
+
+            if (elementName.Contains("-"))
+            {
+                elementName = elementName.Replace('-', '+');
+            }
 
             var lookupAssemblies = new List<XmlnsDefinitionAttribute>();
             var lookupNames = new List<string>();

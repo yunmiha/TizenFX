@@ -17,21 +17,19 @@ using System;
 using System.ComponentModel;
 using Tizen.NUI.BaseComponents;
 using Tizen.NUI.Binding;
-using Tizen.NUI.Components.Extension;
-using Tizen.NUI.Accessibility;
 
 namespace Tizen.NUI.Components
 {
     /// <summary>
     /// This class provides a basic item for CollectionView.
     /// </summary>
-    [EditorBrowsable(EditorBrowsableState.Never)]
+    /// <since_tizen> 9 </since_tizen>
     public partial class RecyclerViewItem : Control
     {
         /// <summary>
         /// Property of boolean Enable flag.
         /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
+        /// <since_tizen> 9 </since_tizen>
         public static readonly BindableProperty IsEnabledProperty = BindableProperty.Create(nameof(IsEnabled), typeof(bool), typeof(RecyclerViewItem), true, propertyChanged: (bindable, oldValue, newValue) =>
         {
             var instance = (RecyclerViewItem)bindable;
@@ -41,10 +39,6 @@ namespace Tizen.NUI.Components
                 if (instance.isEnabled != newEnabled)
                 {
                     instance.isEnabled = newEnabled;
-                    if (instance.ItemStyle != null)
-                    {
-                        instance.ItemStyle.IsEnabled = newEnabled;
-                    }
                     instance.UpdateState();
                 }
             }
@@ -54,7 +48,7 @@ namespace Tizen.NUI.Components
         /// <summary>
         /// Property of boolean Selected flag.
         /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
+        /// <since_tizen> 9 </since_tizen>
         public static readonly BindableProperty IsSelectedProperty = BindableProperty.Create(nameof(IsSelected), typeof(bool), typeof(RecyclerViewItem), true, propertyChanged: (bindable, oldValue, newValue) =>
         {
             var instance = (RecyclerViewItem)bindable;
@@ -64,11 +58,6 @@ namespace Tizen.NUI.Components
                 if (instance.isSelected != newSelected)
                 {
                     instance.isSelected = newSelected;
-
-                    if (instance.ItemStyle != null)
-                    {
-                        instance.ItemStyle.IsSelected = newSelected;
-                    }
 
                     if (instance.isSelectable)
                     {
@@ -85,8 +74,8 @@ namespace Tizen.NUI.Components
 
         /// <summary>
         /// Property of boolean Selectable flag.
-        /// </summary>      
-        [EditorBrowsable(EditorBrowsableState.Never)]
+        /// </summary>
+        /// <since_tizen> 9 </since_tizen>
         public static readonly BindableProperty IsSelectableProperty = BindableProperty.Create(nameof(IsSelectable), typeof(bool), typeof(RecyclerViewItem), true, propertyChanged: (bindable, oldValue, newValue) =>
         {
             var instance = (RecyclerViewItem)bindable;
@@ -96,12 +85,6 @@ namespace Tizen.NUI.Components
                 if (instance.isSelectable != newSelectable)
                 {
                     instance.isSelectable = newSelectable;
-
-                    if (instance.ItemStyle != null)
-                    {
-                        instance.ItemStyle.IsSelectable = newSelectable;
-                    }
-
                     instance.UpdateState();
                 }
             }
@@ -113,65 +96,44 @@ namespace Tizen.NUI.Components
         private bool isEnabled = true;
         private RecyclerViewItemStyle ItemStyle => ViewStyle as RecyclerViewItemStyle;
 
-        /// <summary>
-        /// Return a copied Style instance of Toast
-        /// </summary>
-        /// <remarks>
-        /// It returns copied Style instance and changing it does not effect to the Toast.
-        /// Style setting is possible by using constructor or the function of ApplyStyle(ViewStyle viewStyle)
-        /// </remarks>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public new RecyclerViewItemStyle Style
-        {
-            get
-            {
-                var result = new RecyclerViewItemStyle(ItemStyle);
-                result.CopyPropertiesFromView(this);
-                return result;
-            }
-        }
-
         static RecyclerViewItem() { }
 
         /// <summary>
         /// Creates a new instance of RecyclerViewItem.
         /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
+        /// <since_tizen> 9 </since_tizen>
         public RecyclerViewItem() : base()
         {
-            Initialize();
         }
 
         /// <summary>
         /// Creates a new instance of RecyclerViewItem with style.
         /// </summary>
         /// <param name="style">Create RecyclerViewItem by special style defined in UX.</param>
-        [EditorBrowsable(EditorBrowsableState.Never)]
+        /// <since_tizen> 9 </since_tizen>
         public RecyclerViewItem(string style) : base(style)
         {
-            Initialize();
         }
 
         /// <summary>
         /// Creates a new instance of a RecyclerViewItem with style.
         /// </summary>
         /// <param name="itemStyle">Create RecyclerViewItem by style customized by user.</param>
-        [EditorBrowsable(EditorBrowsableState.Never)]
+        /// <since_tizen> 9 </since_tizen>
         public RecyclerViewItem(RecyclerViewItemStyle itemStyle) : base(itemStyle)
         {
-            Initialize();
         }
 
         /// <summary>
         /// An event for the RecyclerViewItem clicked signal which can be used to subscribe or unsubscribe the event handler provided by the user.
         /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
+        /// <since_tizen> 9 </since_tizen>
         public event EventHandler<ClickedEventArgs> Clicked;
 
         /// <summary>
         /// Flag to decide RecyclerViewItem can be selected or not.
         /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
+        /// <since_tizen> 9 </since_tizen>
         public bool IsSelectable
         {
             get => (bool)GetValue(IsSelectableProperty);
@@ -181,7 +143,7 @@ namespace Tizen.NUI.Components
         /// <summary>
         /// Flag to decide selected state in RecyclerViewItem.
         /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
+        /// <since_tizen> 9 </since_tizen>
         public bool IsSelected
         {
             get => (bool)GetValue(IsSelectedProperty);
@@ -189,9 +151,10 @@ namespace Tizen.NUI.Components
         }
 
         /// <summary>
-        /// Flag to decide enable or disable in RecyclerViewItem.
+        /// Flag to decide enabled state in RecyclerViewItem.
+        /// Set enabled state false makes item untouchable and unfocusable.
         /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
+        /// <since_tizen> 9 </since_tizen>
         public bool IsEnabled
         {
             get => (bool)GetValue(IsEnabledProperty);
@@ -252,15 +215,18 @@ namespace Tizen.NUI.Components
                     if (IsSelectable)
                     {
                         // Extension : Extension?.SetTouchInfo(touch);
-                        if (ParentItemsView as CollectionView)
+                        if (ParentItemsView is CollectionView colView)
                         {
-                            CollectionView colView = ParentItemsView as CollectionView;
                             switch (colView.SelectionMode)
                             {
-                                case ItemSelectionMode.SingleSelection:
+                                case ItemSelectionMode.Single:
                                     colView.SelectedItem = IsSelected ? null : BindingContext;
                                     break;
-                                case ItemSelectionMode.MultipleSelections:
+                                case ItemSelectionMode.SingleAlways:
+                                    if (colView.SelectedItem != BindingContext)
+                                        colView.SelectedItem = BindingContext;
+                                    break;
+                                case ItemSelectionMode.Multiple:
                                     var selectedItems = colView.SelectedItems;
                                     if (selectedItems.Contains(BindingContext)) selectedItems.Remove(BindingContext);
                                     else selectedItems.Add(BindingContext);
@@ -270,16 +236,14 @@ namespace Tizen.NUI.Components
                             }
                         }
                     }
-                    else
-                    {
-                        UpdateState();
-                    }
 
                     if (clicked)
                     {
                         ClickedEventArgs eventArgs = new ClickedEventArgs();
                         OnClickedInternal(eventArgs);
                     }
+
+                    UpdateState();
                 }
             }
             return base.OnKey(key);
@@ -311,7 +275,7 @@ namespace Tizen.NUI.Components
         /// Apply style to RecyclerViewItem.
         /// </summary>
         /// <param name="viewStyle">The style to apply.</param>
-        [EditorBrowsable(EditorBrowsableState.Never)]
+        /// <since_tizen> 9 </since_tizen>
         public override void ApplyStyle(ViewStyle viewStyle)
         {
             styleApplied = false;
@@ -320,9 +284,49 @@ namespace Tizen.NUI.Components
             if (viewStyle != null)
             {
                 //Extension = RecyclerViewItemStyle.CreateExtension();
+                //FIXME : currently padding and margin are not applied by ApplyStyle automatically as missing binding features.               
+                Padding = new Extents(viewStyle.Padding);
+                Margin = new Extents(viewStyle.Margin);
             }
 
             styleApplied = true;
+        }
+
+        /// <summary>
+        /// Get ViewItem style.
+        /// </summary>
+        /// <returns>The default ViewItem style.</returns>
+        /// <since_tizen> 9 </since_tizen>
+        protected override ViewStyle CreateViewStyle()
+        {
+            return new RecyclerViewItemStyle();
+        }
+
+        /// <summary>
+        /// Called when the ViewItem is Clicked by a user
+        /// </summary>
+        /// <param name="eventArgs">The click information.</param>
+        /// <since_tizen> 9 </since_tizen>
+        protected virtual void OnClicked(ClickedEventArgs eventArgs)
+        {
+            //Console.WriteLine("On Clicked Called {0}", this.Index);
+        }
+
+        /// <inheritdoc/>
+        /// <since_tizen> 9 </since_tizen>
+        protected override void Dispose(DisposeTypes type)
+        {
+            if (disposed)
+            {
+                return;
+            }
+
+            if (type == DisposeTypes.Explicit)
+            {
+                //
+            }
+
+            base.Dispose(type);
         }
     }
 }

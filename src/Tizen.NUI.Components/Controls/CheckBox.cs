@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright(c) 2019 Samsung Electronics Co., Ltd.
+ * Copyright(c) 2021 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,10 @@ namespace Tizen.NUI.Components
         public override void OnInitialize()
         {
             base.OnInitialize();
+
             SetAccessibilityConstructor(Role.CheckBox);
+            WidthSpecification = LayoutParamPolicies.WrapContent;
+            HeightSpecification = LayoutParamPolicies.WrapContent;
         }
 
         /// <summary>
@@ -69,36 +72,6 @@ namespace Tizen.NUI.Components
             {
                 base.ItemGroup = value;
             }
-        }
-
-        /// <inheritdoc/>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public override void ApplyStyle(ViewStyle viewStyle)
-        {
-            if (viewStyle is ButtonStyle buttonStyle)
-            {
-                if (buttonStyle.IsSelectable == null)
-                {
-                    buttonStyle.IsSelectable = true;
-                }
-
-                base.ApplyStyle(buttonStyle);
-            }
-        }
-
-        /// <inheritdoc/>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        protected override ImageView CreateIcon()
-        {
-            return new ImageView
-            {
-                PositionUsesPivotPoint = true,
-                ParentOrigin = NUI.ParentOrigin.Center,
-                PivotPoint = NUI.PivotPoint.Center,
-                WidthResizePolicy = ResizePolicyType.DimensionDependency,
-                HeightResizePolicy = ResizePolicyType.SizeRelativeToParent,
-                SizeModeFactor = new Vector3(1, 1, 1),
-            };
         }
     }
 }

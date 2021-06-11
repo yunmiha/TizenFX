@@ -39,8 +39,15 @@ namespace Tizen.NUI
             { "boxShadow.CornerRadius", new VisualPropertyData(View.Property.SHADOW, Visual.Property.CornerRadius, ObjectIntToFloat) },
             { "boxShadow.Offset",       new VisualPropertyData(View.Property.SHADOW, (int)VisualTransformPropertyType.Offset) },
             { "boxShadow.Opacity",      new VisualPropertyData(View.Property.SHADOW, Visual.Property.Opacity, ObjectIntToFloat) },
-            { "cornerRadius",           new VisualPropertyData(View.Property.BACKGROUND, Visual.Property.CornerRadius, ObjectIntToFloat, null,
-                                        new VisualPropertyData(View.Property.SHADOW, Visual.Property.CornerRadius, ObjectIntToFloat)) },
+            { "cornerRadius",           new VisualPropertyData(ImageView.Property.IMAGE, Visual.Property.CornerRadius, null, null,
+                                        new VisualPropertyData(View.Property.SHADOW, Visual.Property.CornerRadius, null, null,
+                                        new VisualPropertyData(View.Property.BACKGROUND, Visual.Property.CornerRadius, null, null))) },
+            { "borderlineWidth",        new VisualPropertyData(ImageView.Property.IMAGE, Visual.Property.BorderlineWidth, ObjectIntToFloat, null,
+                                        new VisualPropertyData(View.Property.BACKGROUND, Visual.Property.BorderlineWidth, ObjectIntToFloat, null)) },
+            { "borderlineColor",        new VisualPropertyData(ImageView.Property.IMAGE, Visual.Property.BorderlineColor, null, null,
+                                        new VisualPropertyData(View.Property.BACKGROUND, Visual.Property.BorderlineColor, null, null)) },
+            { "borderlineOffset",       new VisualPropertyData(ImageView.Property.IMAGE, Visual.Property.BorderlineOffset, null, null,
+                                        new VisualPropertyData(View.Property.BACKGROUND, Visual.Property.BorderlineOffset, null, null)) },
             { "imageShadow.Offset",     new VisualPropertyData(View.Property.SHADOW, (int)VisualTransformPropertyType.Offset) },
             { "shadow.CornerRadius",    new VisualPropertyData(View.Property.SHADOW, Visual.Property.CornerRadius, ObjectIntToFloat) },
         };
@@ -109,15 +116,14 @@ namespace Tizen.NUI
             if (property.propertyIndex == Property.InvalidIndex)
             {
                 property.Dispose();
-                return null;
+                return data.RelatedData == null ? null : GenerateVisualPropertySearchResult(view, data.RelatedData);
             }
 
             SearchResult result = new SearchResult(property, data.ObjectConverter, data.PropertyValueConverter);
 
-            while (data.RelatedData != null)
+            if (data.RelatedData != null)
             {
                 result.NextResult = GenerateVisualPropertySearchResult(view, data.RelatedData);
-                data = data.RelatedData;
             }
 
             return result;
@@ -204,6 +210,16 @@ namespace Tizen.NUI
             if (type.Equals(typeof(System.Int32)) || type.Equals(typeof(int)))
             {
                 return (float)((int)value);
+            }
+
+            return value;
+        }
+
+        private static object ObjectVector4ToFloat(object value)
+        {
+            if (value is Vector4 vector)
+            {
+                return vector.X;
             }
 
             return value;

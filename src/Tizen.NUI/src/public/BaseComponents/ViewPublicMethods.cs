@@ -166,7 +166,8 @@ namespace Tizen.NUI.BaseComponents
                     };
                     ChildAdded(this, e);
                 }
-                BindableObject.SetInheritedBindingContext(child, this?.BindingContext);
+
+                AddChildBindableObject(child);
             }
         }
 
@@ -253,7 +254,7 @@ namespace Tizen.NUI.BaseComponents
             }
             else
             {
-                Tizen.Log.Error("NUI", "swigCPtr of view is aleady disposed.");
+                Tizen.Log.Error("NUI", "swigCPtr of view is already disposed.");
             }
             return ret;
         }
@@ -302,8 +303,10 @@ namespace Tizen.NUI.BaseComponents
         /// <since_tizen> 3 </since_tizen>
         public void Show()
         {
-            if (AccessibilityCalculateStates().Get(AccessibilityState.Modal))
-                AddPopup();
+            if ((AccessibilityCalculateStates() & AccessibilityStates.Modal) != 0)
+            {
+                RegisterPopup();
+            }
 
             SetVisible(true);
         }
@@ -321,8 +324,10 @@ namespace Tizen.NUI.BaseComponents
         {
             SetVisible(false);
 
-            if (AccessibilityCalculateStates().Get(AccessibilityState.Modal))
+            if ((AccessibilityCalculateStates() & AccessibilityStates.Modal) != 0)
+            {
                 RemovePopup();
+            }
         }
 
         /// <summary>
@@ -631,17 +636,6 @@ namespace Tizen.NUI.BaseComponents
             Interop.ActorInternal.SetColorMode(SwigCPtr, (int)colorMode);
             if (NDalicPINVOKE.SWIGPendingException.Pending)
                 throw NDalicPINVOKE.SWIGPendingException.Retrieve();
-        }
-
-
-
-        /// This will be public opened in tizen_next after ACR done. Before ACR, need to be hidden as inhouse API.
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public Transition GetTransition(string transitionName)
-        {
-            Transition trans = null;
-            transDictionary.TryGetValue(transitionName, out trans);
-            return trans;
         }
 
         /// This will be public opened in tizen_next after ACR done. Before ACR, need to be hidden as inhouse API.

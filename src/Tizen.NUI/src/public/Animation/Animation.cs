@@ -368,7 +368,7 @@ namespace Tizen.NUI
         }
 
         /// <summary>
-        /// Gets or sets specificifications of a speed factor for the animation.<br />
+        /// Gets or sets specifications of a speed factor for the animation.<br />
         /// The speed factor is a multiplier of the normal velocity of the animation.<br />
         /// Values between [0, 1] will slow down the animation and values above one will speed up the animation.<br />
         /// It is also possible to specify a negative multiplier to play the animation in reverse.<br />
@@ -693,7 +693,7 @@ namespace Tizen.NUI
                 }
 
                 var current = result;
-                using (var time = new TimePeriod(MilliSecondsToSeconds(startTime), MilliSecondsToSeconds(endTime - startTime)))
+                using (var time = new TimePeriod(startTime, endTime - startTime))
                     while (current != null)
                     {
                         var targetValue = current.RefineValue(relativeValue) ?? throw new ArgumentException("Invalid " + nameof(relativeValue));
@@ -849,7 +849,7 @@ namespace Tizen.NUI
                 }
 
                 var current = result;
-                using (var time = new TimePeriod(MilliSecondsToSeconds(startTime), MilliSecondsToSeconds(endTime - startTime)))
+                using (var time = new TimePeriod(startTime, endTime - startTime))
                     while (current != null)
                     {
                         var targetValue = current.RefineValue(destinationValue) ?? throw new ArgumentException("Invalid " + nameof(destinationValue));
@@ -939,7 +939,7 @@ namespace Tizen.NUI
                 }
 
                 var current = result;
-                using (var time = new TimePeriod(MilliSecondsToSeconds(startTime), MilliSecondsToSeconds(endTime - startTime)))
+                using (var time = new TimePeriod(startTime, endTime - startTime))
                     while (current != null)
                     {
                         // NOTE Do not dispose keyFrames object returned by GetRefinedKeyFrames() here.
@@ -985,7 +985,7 @@ namespace Tizen.NUI
         /// <since_tizen> 3 </since_tizen>
         public void AnimatePath(View view, Path path, Vector3 forward, int startTime, int endTime, AlphaFunction alphaFunction = null)
         {
-            TimePeriod time = new TimePeriod(MilliSecondsToSeconds(startTime), MilliSecondsToSeconds(endTime - startTime));
+            TimePeriod time = new TimePeriod(startTime, endTime - startTime);
             if (alphaFunction == null)
             {
                 Animate(view, path, forward, time);

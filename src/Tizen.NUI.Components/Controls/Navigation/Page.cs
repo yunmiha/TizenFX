@@ -1,5 +1,5 @@
 ﻿/*
- * Copyright(c) 2020 Samsung Electronics Co., Ltd.
+ * Copyright(c) 2021 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,7 @@
  *
  */
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using Tizen.NUI.BaseComponents;
-using Tizen.NUI.Binding;
-using System.Windows.Input;
 
 namespace Tizen.NUI.Components
 {
@@ -40,169 +36,56 @@ namespace Tizen.NUI.Components
     }
 
     /// <summary>
-    /// The Page class is a class which is an element of navigation.
+    /// PageAppearedEventArgs is a class to record page appeared event arguments which will be sent to user.
     /// </summary>
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public class Page : Control
+    public class PageAppearedEventArgs : EventArgs
     {
-        private AppBar _appBar = null;
-        private View _content = null;
+    }
+
+    /// <summary>
+    /// PageDisappearedEventArgs is a class to record page disappeared event arguments which will be sent to user.
+    /// </summary>
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public class PageDisappearedEventArgs : EventArgs
+    {
+    }
+
+    /// <summary>
+    /// The Page class is a class which is an element of navigation.
+    /// </summary>
+    /// <since_tizen> 9 </since_tizen>
+    public abstract class Page : Control
+    {
+        private Navigator navigator = null;
 
         /// <summary>
         /// Creates a new instance of a Page.
         /// </summary>
-        /// <param name="content">The content to set to Content of Page.</param>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public Page(View content = null) : this(null, content)
+        /// <since_tizen> 9 </since_tizen>
+        public Page() : base()
         {
         }
 
         /// <summary>
-        /// Creates a new instance of a Page.
+        /// Navigator which has pushed the Page into its stack.
+        /// If this Page has not been pushed into any Navigator, then Navigator is null.
         /// </summary>
-        /// <param name="appBar">The content to set to AppBar of Page.</param>
-        /// <param name="content">The content to set to Content of Page.</param>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public Page(AppBar appBar, View content = null) : base()
-        {
-            //AppBar and Content are located verically.
-            var linearLayout = new LinearLayout();
-            linearLayout.LinearOrientation = LinearLayout.Orientation.Vertical;
-            Layout = linearLayout;
-
-            //Page fills to parent by default.
-            WidthResizePolicy = ResizePolicyType.FillToParent;
-            HeightResizePolicy = ResizePolicyType.FillToParent;
-
-            if (appBar)
-            {
-                AppBar = appBar;
-            }
-
-            if (content)
-            {
-                Content = content;
-            }
-        }
-
-        /// <summary>
-        /// Dispose Page and all children on it.
-        /// </summary>
-        /// <param name="type">Dispose type.</param>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        protected override void Dispose(DisposeTypes type)
-        {
-            if (disposed)
-            {
-                return;
-            }
-
-            if (type == DisposeTypes.Explicit)
-            {
-                if (_appBar != null)
-                {
-                    Utility.Dispose(_appBar);
-                }
-
-                if (_content != null)
-                {
-                    Utility.Dispose(_content);
-                }
-            }
-
-            base.Dispose(type);
-        }
-
-        /// <summary>
-        /// AppBar of Page. AppBar is added to Children automatically.
-        /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public AppBar AppBar
+        /// <since_tizen> 9 </since_tizen>
+        public Navigator Navigator
         {
             get
             {
-                return _appBar;
+                return navigator;
             }
-            set
+            internal set
             {
-                if (_appBar == value)
+                if (navigator == value)
                 {
                     return;
                 }
 
-                if (_appBar != null)
-                {
-                    Remove(_appBar);
-                }
-
-                _appBar = value;
-                if (_appBar == null)
-                {
-                    return;
-                }
-
-                _appBar.Weight = 0.0f;
-
-                ResetContent();
-            }
-        }
-
-        /// <summary>
-        /// Content of Page. Content is added to Children automatically.
-        /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public View Content
-        {
-            get
-            {
-                return _content;
-            }
-            set
-            {
-                if (_content == value)
-                {
-                    return;
-                }
-
-                if (_content != null)
-                {
-                    Remove(_content);
-                }
-
-                _content = value;
-                if (_content == null)
-                {
-                    return;
-                }
-
-                _content.Weight = 1.0f;
-
-                ResetContent();
-            }
-        }
-
-        private void ResetContent()
-        {
-            //To keep the order of AppBar and Content, the existing contents are
-            //removed and added again.
-            if ((_appBar != null) && Children.Contains(_appBar))
-            {
-                Remove(_appBar);
-            }
-
-            if ((_content != null) && Children.Contains(_content))
-            {
-                Remove(_content);
-            }
-
-            if (_appBar != null)
-            {
-                Add(_appBar);
-            }
-
-            if (_content != null)
-            {
-                Add(_content);
+                navigator = value;
             }
         }
 
@@ -218,6 +101,18 @@ namespace Tizen.NUI.Components
         [EditorBrowsable(EditorBrowsableState.Never)]
         public event EventHandler<PageDisappearingEventArgs> Disappearing;
 
+        /// <summary>
+        /// An event for the page appeared signal which can be used to subscribe or unsubscribe the event handler provided by the user.
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public event EventHandler<PageAppearedEventArgs> Appeared;
+
+        /// <summary>
+        /// An event for the page disappeared signal which can be used to subscribe or unsubscribe the event handler provided by the user.
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public event EventHandler<PageDisappearedEventArgs> Disappeared;
+
         internal void InvokeAppearing()
         {
             Appearing?.Invoke(this, new PageAppearingEventArgs());
@@ -226,6 +121,16 @@ namespace Tizen.NUI.Components
         internal void InvokeDisappearing()
         {
             Disappearing?.Invoke(this, new PageDisappearingEventArgs());
+        }
+
+        internal void InvokeAppeared()
+        {
+            Appeared?.Invoke(this, new PageAppearedEventArgs());
+        }
+
+        internal void InvokeDisappeared()
+        {
+            Disappeared?.Invoke(this, new PageDisappearedEventArgs());
         }
     }
 }

@@ -1,7 +1,22 @@
+/* Copyright (c) 2021 Samsung Electronics Co., Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
 using System;
 using System.ComponentModel;
 using Tizen.NUI.BaseComponents;
-using Tizen.NUI.Components.Extension;
 using Tizen.NUI.Accessibility; // To use AccessibilityManager
 
 namespace Tizen.NUI.Components
@@ -75,15 +90,7 @@ namespace Tizen.NUI.Components
             return true;
         }
 
-        /// <summary>
-        /// Called when the ViewItem is Clicked by a user
-        /// </summary>
-        /// <param name="eventArgs">The click information.</param>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        protected virtual void OnClicked(ClickedEventArgs eventArgs)
-        {
-            //Console.WriteLine("On Clicked Called {0}", this.Index);
-        }
+
 
         /// <summary>
         /// Called when the ViewItem need to be updated
@@ -113,9 +120,11 @@ namespace Tizen.NUI.Components
                     UpdateState();
                     return true;
                 case PointStateType.Interrupted:
+                case PointStateType.Motion:
+                case PointStateType.Leave:
                     IsPressed = false;
                     UpdateState();
-                    return true;
+                    return false;
                 case PointStateType.Up:
                     {
                         bool clicked = IsPressed && IsEnabled;
@@ -125,15 +134,20 @@ namespace Tizen.NUI.Components
 
                         if (IsSelectable)
                         {
-                            if (ParentItemsView as CollectionView)
+                            if (ParentItemsView is CollectionView colView)
                             {
-                                CollectionView colView = ParentItemsView as CollectionView;
                                 switch (colView.SelectionMode)
                                 {
-                                    case ItemSelectionMode.SingleSelection:
+                                    case ItemSelectionMode.Single:
                                         colView.SelectedItem = IsSelected ? null : BindingContext;
                                         break;
-                                    case ItemSelectionMode.MultipleSelections:
+                                    case ItemSelectionMode.SingleAlways:
+                                        if (colView.SelectedItem != BindingContext)
+                                        {
+                                            colView.SelectedItem = BindingContext;
+                                        }
+                                        break;
+                                    case ItemSelectionMode.Multiple:
                                         var selectedItems = colView.SelectedItems;
                                         if (selectedItems.Contains(BindingContext)) selectedItems.Remove(BindingContext);
                                         else selectedItems.Add(BindingContext);
@@ -143,17 +157,14 @@ namespace Tizen.NUI.Components
                                 }
                             }
                         }
-                        else
-                        {
-                            // Extension : Extension?.SetTouchInfo(touch);
-                            UpdateState();
-                        }
 
                         if (clicked)
                         {
                             ClickedEventArgs eventArgs = new ClickedEventArgs();
                             OnClickedInternal(eventArgs);
                         }
+
+                        UpdateState();
 
                         return true;
                     }
@@ -180,25 +191,6 @@ namespace Tizen.NUI.Components
         {
         }
 
-        /// <summary>
-        /// Dispose Item and all children on it.
-        /// </summary>
-        /// <param name="type">Dispose type.</param>
-        protected override void Dispose(DisposeTypes type)
-        {
-            if (disposed)
-            {
-                return;
-            }
-
-            if (type == DisposeTypes.Explicit)
-            {
-                //
-            }
-
-            base.Dispose(type);
-        }
-
         /// <inheritdoc/>
         [EditorBrowsable(EditorBrowsableState.Never)]
         protected override void OnControlStateChanged(ControlStateChangedEventArgs controlStateChangedInfo)
@@ -222,21 +214,12 @@ namespace Tizen.NUI.Components
         }
 
         /// <summary>
-        /// Get ViewItem style.
-        /// </summary>
-        /// <returns>The default ViewItem style.</returns>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        protected override ViewStyle CreateViewStyle()
-        {
-            return new RecyclerViewItemStyle();
-        }
-
-        /// <summary>
-        /// It is hijack by using protected, style copy problem when class inherited from Button.
+        /// Initializes AT-SPI object.
         /// </summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        private void Initialize()
+        public override void OnInitialize()
         {
+            base.OnInitialize();
             //FIXME!
             IsCreateByXaml = true;
             Layout = new AbsoluteLayout();
@@ -263,10 +246,18 @@ namespace Tizen.NUI.Components
         [EditorBrowsable(EditorBrowsableState.Never)]
         protected override void OnBindingContextChanged()
         {
-            foreach (View child in Children)
+            PropagateBindingContext(this);
+        }
+
+        private void PropagateBindingContext(View parent)
+        {
+            if (parent?.Children == null) return;
+            foreach (View child in parent.Children)
             {
                 SetChildInheritedBindingContext(child, BindingContext);
+                PropagateBindingContext(child);
             }
+
         }
 
         private void OnClickedInternal(ClickedEventArgs eventArgs)

@@ -30,8 +30,6 @@ namespace Tizen.NUI
     /// </summary>
     internal class LayoutController : Disposable
     {
-        static bool LayoutDebugController = false; // Debug flag
-
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         internal delegate void Callback(int id);
 
@@ -139,7 +137,7 @@ namespace Tizen.NUI
         }
 
         /// <summary>
-        /// Dispose Explict or Implicit
+        /// Dispose Explicit or Implicit
         /// </summary>
         protected override void Dispose(DisposeTypes type)
         {
@@ -163,103 +161,87 @@ namespace Tizen.NUI
 
         // Traverse the tree looking for a root node that is a layout.
         // Once found, it's children can be assigned Layouts and the Measure process started.
-        private void FindRootLayouts(View rootNode)
+        private void FindRootLayouts(View rootNode, float parentWidth, float parentHeight)
         {
             if (rootNode.Layout != null)
             {
-                Debug.WriteLineIf(LayoutDebugController, "LayoutController Root found:" + rootNode.Name);
+                NUILog.Debug("LayoutController Root found:" + rootNode.Name);
                 // rootNode has a layout, start measuring and layouting from here.
-                MeasureAndLayout(rootNode);
+                MeasureAndLayout(rootNode, parentWidth, parentHeight);
             }
             else
             {
+                float rootWidth = rootNode.SizeWidth;
+                float rootHeight = rootNode.SizeHeight;
                 // Search children of supplied node for a layout.
                 for (uint i = 0; i < rootNode.ChildCount; i++)
                 {
                     View view = rootNode.GetChildAt(i);
-                    FindRootLayouts(view);
+                    FindRootLayouts(view, rootWidth, rootHeight);
                 }
             }
         }
 
         // Starts of the actual measuring and layouting from the given root node.
         // Can be called from multiple starting roots but in series.
-        void MeasureAndLayout(View root)
+        // Get parent View's Size.  If using Legacy size negotiation then should have been set already.
+        // Parent not a View so assume it's a Layer which is the size of the window.
+        void MeasureAndLayout(View root, float parentWidth, float parentHeight)
         {
-            if (root != null)
+            if (root.Layout != null)
             {
-                // Get parent MeasureSpecification, this could be the Window or View with an exact size.
-                Container parentNode = root.GetParent();
-                Size2D rootSize;
-                Position2D rootPosition = root.Position2D;
-                View parentView = parentNode as View;
-                if (parentView != null)
-                {
-                    // Get parent View's Size.  If using Legacy size negotiation then should have been set already.
-                    rootSize = new Size2D(parentView.Size2D.Width, parentView.Size2D.Height);
-                }
-                else
-                {
-                    // Parent not a View so assume it's a Layer which is the size of the window.
-                    rootSize = new Size2D(window.Size.Width, window.Size.Height);
-                }
-
                 // Determine measure specification for root.
                 // The root layout policy could be an exact size, be match parent or wrap children.
                 // If wrap children then at most it can be the root parent size.
                 // If match parent then should be root parent size.
                 // If exact then should be that size limited by the root parent size.
+                float widthSize = GetLengthSize(parentWidth, root.WidthSpecification);
+                float heightSize = GetLengthSize(parentHeight, root.HeightSpecification);
+                MeasureSpecification.ModeType widthMode = GetMode(root.WidthSpecification);
+                MeasureSpecification.ModeType heightMode = GetMode(root.HeightSpecification);
 
-                LayoutLength width = new LayoutLength(rootSize.Width);
-                LayoutLength height = new LayoutLength(rootSize.Height);
-                MeasureSpecification.ModeType widthMode = MeasureSpecification.ModeType.Unspecified;
-                MeasureSpecification.ModeType heightMode = MeasureSpecification.ModeType.Unspecified;
-
-                if (root.WidthSpecification >= 0)
+                if (root.Layout.NeedsLayout(widthSize, heightSize, widthMode, heightMode))
                 {
-                    // exact size provided so match width exactly
-                    width = new LayoutLength(root.WidthSpecification);
-                    widthMode = MeasureSpecification.ModeType.Exactly;
-                }
-                else if (root.WidthSpecification == LayoutParamPolicies.MatchParent)
-                {
+                    MeasureSpecification widthSpec = CreateMeasureSpecification(widthSize, widthMode);
+                    MeasureSpecification heightSpec = CreateMeasureSpecification(heightSize, heightMode);
 
-                    widthMode = MeasureSpecification.ModeType.Exactly;
+                    // Start at root with it's parent's widthSpecification and heightSpecification
+                    MeasureHierarchy(root, widthSpec, heightSpec);
                 }
 
-                if (root.HeightSpecification >= 0)
-                {
-                    // exact size provided so match height exactly
-                    height = new LayoutLength(root.HeightSpecification);
-                    heightMode = MeasureSpecification.ModeType.Exactly;
-                }
-                else if (root.HeightSpecification == LayoutParamPolicies.MatchParent)
-                {
-                    heightMode = MeasureSpecification.ModeType.Exactly;
-                }
-
-                MeasureSpecification parentWidthSpecification =
-                    new MeasureSpecification(width, widthMode);
-
-                MeasureSpecification parentHeightSpecification =
-                    new MeasureSpecification(height, heightMode);
-
-                // Start at root with it's parent's widthSpecification and heightSpecification
-                MeasureHierarchy(root, parentWidthSpecification, parentHeightSpecification);
-
+                float positionX = root.PositionX;
+                float positionY = root.PositionY;
                 // Start at root which was just measured.
-                PerformLayout(root, new LayoutLength(rootPosition.X),
-                                     new LayoutLength(rootPosition.Y),
-                                     new LayoutLength(rootPosition.X) + root.Layout.MeasuredWidth.Size,
-                                     new LayoutLength(rootPosition.Y) + root.Layout.MeasuredHeight.Size);
-
-                bool readyToPlay = SetupCoreAnimation();
-
-                if (readyToPlay && OverrideCoreAnimation == false)
-                {
-                    PlayAnimation();
-                }
+                PerformLayout(root, new LayoutLength(positionX),
+                                     new LayoutLength(positionY),
+                                     new LayoutLength(positionX) + root.Layout.MeasuredWidth.Size,
+                                     new LayoutLength(positionY) + root.Layout.MeasuredHeight.Size);
             }
+
+            if (SetupCoreAnimation() && OverrideCoreAnimation == false)
+            {
+                PlayAnimation();
+            }
+        }
+
+        private float GetLengthSize(float size, int specification)
+        {
+            // exact size provided so match width exactly
+            return (specification >= 0) ? specification : size;
+        }
+
+        private MeasureSpecification.ModeType GetMode(int specification)
+        {
+            if (specification >= 0 || specification == LayoutParamPolicies.MatchParent)
+            {
+                return MeasureSpecification.ModeType.Exactly;
+            }
+            return MeasureSpecification.ModeType.Unspecified;
+        }
+
+        private MeasureSpecification CreateMeasureSpecification(float size, MeasureSpecification.ModeType mode)
+        {
+            return new MeasureSpecification(new LayoutLength(size), mode);
         }
 
         /// <summary>
@@ -267,21 +249,22 @@ namespace Tizen.NUI
         /// </summary>
         private void Process(int id)
         {
-            // First layer in the Window should be the default layer (index 0 )
-            uint numberOfLayers = window.LayerCount;
-            for (uint layerIndex = 0; layerIndex < numberOfLayers; layerIndex++)
-            {
-                Layer layer = window.GetLayer(layerIndex);
-                if (layer != null)
-                {
-                    for (uint i = 0; i < layer.ChildCount; i++)
-                    {
-                        View view = layer.GetChildAt(i);
-                        FindRootLayouts(view);
-                    }
-                }
-            }
+            Vector2 windowSize = window.GetSize();
+            float width = windowSize.Width;
+            float height = windowSize.Height;
 
+            window.LayersChildren?.ForEach(layer =>
+            {
+                layer?.Children?.ForEach(view =>
+                {
+                    if (view != null)
+                    {
+                        FindRootLayouts(view, width, height);
+                    }
+                });
+            });
+            windowSize.Dispose();
+            windowSize = null;
         }
 
         /// <summary>
@@ -294,11 +277,7 @@ namespace Tizen.NUI
             // No -  reached leaf or no layouts set
             //
             // If in a leaf View with no layout, it's natural size is bubbled back up.
-
-            if (root.Layout != null)
-            {
-                root.Layout.Measure(widthSpec, heightSpec);
-            }
+            root.Layout?.Measure(widthSpec, heightSpec);
         }
 
         /// <summary>
@@ -306,10 +285,7 @@ namespace Tizen.NUI
         /// </summary>
         private void PerformLayout(View root, LayoutLength left, LayoutLength top, LayoutLength right, LayoutLength bottom)
         {
-            if (root.Layout != null)
-            {
-                root.Layout.Layout(left, top, right, bottom);
-            }
+            root.Layout?.Layout(left, top, right, bottom);
         }
 
         /// <summary>
@@ -317,7 +293,7 @@ namespace Tizen.NUI
         /// </summary>
         private void PlayAnimation()
         {
-            Debug.WriteLineIf(LayoutDebugController, "LayoutController Playing, Core Duration:" + coreAnimation.Duration);
+            NUILog.Debug("LayoutController Playing, Core Duration:" + coreAnimation.Duration);
             coreAnimation.Play();
         }
 
@@ -351,7 +327,7 @@ namespace Tizen.NUI
                 // of the other stack.  Then the main removal stack iterated when AnimationFinished
                 // occurs again.
             }
-            Debug.WriteLineIf(LayoutDebugController, "LayoutController AnimationFinished");
+            NUILog.Debug("LayoutController AnimationFinished");
             coreAnimation?.Clear();
         }
 
@@ -364,8 +340,7 @@ namespace Tizen.NUI
             // Initialize animation for this layout run.
             bool animationPending = false;
 
-            Debug.WriteLineIf(LayoutDebugController,
-                               "LayoutController SetupCoreAnimation for:" + layoutTransitionDataQueue.Count);
+            NUILog.Debug("LayoutController SetupCoreAnimation for:" + layoutTransitionDataQueue.Count);
 
             if (layoutTransitionDataQueue.Count > 0) // Something to animate
             {
@@ -404,8 +379,7 @@ namespace Tizen.NUI
                             positionTransitionComponents.Duration,
                             positionTransitionComponents.AlphaFunction);
 
-                Debug.WriteLineIf(LayoutDebugController,
-                                   "LayoutController SetupAnimationForPosition View:" + layoutPositionData.Item.Owner.Name +
+                NUILog.Debug("LayoutController SetupAnimationForPosition View:" + layoutPositionData.Item.Owner.Name +
                                    " left:" + layoutPositionData.Left +
                                    " top:" + layoutPositionData.Top +
                                    " delay:" + positionTransitionComponents.Delay +
@@ -434,8 +408,7 @@ namespace Tizen.NUI
                                          sizeTransitionComponents.Duration,
                                          sizeTransitionComponents.AlphaFunction);
 
-                Debug.WriteLineIf(LayoutDebugController,
-                                  "LayoutController SetupAnimationForSize View:" + layoutPositionData.Item.Owner.Name +
+                NUILog.Debug("LayoutController SetupAnimationForSize View:" + layoutPositionData.Item.Owner.Name +
                                    " width:" + (layoutPositionData.Right - layoutPositionData.Left) +
                                    " height:" + (layoutPositionData.Bottom - layoutPositionData.Top) +
                                    " delay:" + sizeTransitionComponents.Delay +
@@ -459,8 +432,7 @@ namespace Tizen.NUI
                                                  transition.Animator.Duration,
                                                  transition.Animator.AlphaFunction);
 
-                        Debug.WriteLineIf(LayoutDebugController,
-                                           "LayoutController SetupAnimationForCustomTransitions View:" + view.Name +
+                        NUILog.Debug("LayoutController SetupAnimationForCustomTransitions View:" + view.Name +
                                            " Property:" + transition.AnimatableProperty.ToString() +
                                            " delay:" + transition.Animator.Delay +
                                            " duration:" + transition.Animator.Duration);
@@ -519,7 +491,7 @@ namespace Tizen.NUI
             // Note, Transitions set on View rather than LayoutItem so if the Layout changes the transition persist.
 
             // Check if item to animate has it's own Transitions for this condition.
-            // If a key exists then a List of atleast 1 transition exists.
+            // If a key exists then a List of at least 1 transition exists.
             if (layoutPositionData.Item.Owner.LayoutTransitions.ContainsKey(conditionForAnimators))
             {
                 // Child has transitions for the condition
@@ -571,6 +543,10 @@ namespace Tizen.NUI
             SetupAnimationForPosition(layoutPositionData, positionTransitionComponents);
 
             SetupAnimationForSize(layoutPositionData, sizeTransitionComponents);
+
+            // Dispose components
+            positionTransitionComponents.Dispose();
+            sizeTransitionComponents.Dispose();
         }
 
     } // class LayoutController
