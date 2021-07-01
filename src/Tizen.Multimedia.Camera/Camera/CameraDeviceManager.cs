@@ -1,3 +1,4 @@
+using System.Linq;
 /*
  * Copyright (c) 2021 Samsung Electronics Co., Ltd All Rights Reserved
  *
@@ -25,10 +26,13 @@ namespace Tizen.Multimedia
     /// <summary>
     /// This CameraDeviceManager class provides methods to control current camera devices and get its information.
     /// </summary>
+    /// <remarks>
+    /// This supports the product infrastructure and is not intended to be used directly from 3rd party application code.
+    /// </remarks>
     /// <since_tizen> 9 </since_tizen>
     /// <feature> http://tizen.org/feature/camera </feature>
     [EditorBrowsable(EditorBrowsableState.Never)]
-    internal class CameraDeviceManager : IDisposable
+    public class CameraDeviceManager : IDisposable
     {
         private IntPtr _handle;
         private bool _disposed;
@@ -37,14 +41,14 @@ namespace Tizen.Multimedia
         /// Initializes a new instance of the <see cref="CameraDeviceManager"/> class.
         /// </summary>
         /// <exception cref="InvalidOperationException">Invalid operation.</exception>
-        /// <exception cref="NotSupportedException">The camera feature is not supported.</exception>
+        /// <exception cref="NotSupportedException">The camera device manager is not supported.</exception>
         /// <since_tizen> 9 </since_tizen>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        internal CameraDeviceManager()
+        public CameraDeviceManager()
         {
             Native.Initialize(out _handle).ThrowIfFailed("Failed to initialize CameraDeviceManager");
 
-            RegisterDeviceListCallback();
+            RegisterDeviceConnectionChangedCallback();
         }
 
         /// <summary>
@@ -57,39 +61,48 @@ namespace Tizen.Multimedia
         }
 
         /// <summary>
+        /// Gets the status whether camera device(usb, network) is connected or not.
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public bool IsExternalCameraConnected =>
+            GetDeviceInformation().Where(d => d.Type == CameraDeviceType.Usb ||
+                                              d.Type == CameraDeviceType.Network)
+                                  .Any();
+
+        /// <summary>
         /// Gets the current camera device information.
         /// </summary>
         /// <returns></returns>
         /// <since_tizen> 9 </since_tizen>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        internal ReadOnlyCollection<CameraDeviceInfo> GetDeviceInfo()
+        public ReadOnlyCollection<CameraDeviceInformation> GetDeviceInformation()
         {
             var deviceList = new Native.CameraDeviceListStruct();
 
             Native.GetDeviceList(Handle, ref deviceList).
                 ThrowIfFailed("Failed to get camera device list");
 
-            return GetDeviceInfo(deviceList);
+            return GetDeviceInformation(deviceList);
         }
 
-        internal static ReadOnlyCollection<CameraDeviceInfo> GetDeviceInfo(Native.CameraDeviceListStruct deviceList)
+        internal static ReadOnlyCollection<CameraDeviceInformation> GetDeviceInformation(Native.CameraDeviceListStruct list)
         {
-            var cameraDevice = deviceList.device;
+            var devices = list.device;
+            var deviceList = new List<CameraDeviceInformation>();
 
-            var cameraDeviceList = new List<CameraDeviceInfo>();
-
-            for (int i = 0 ; i < deviceList.count ; i++)
+            for (int i = 0 ; i < list.count ; i++)
             {
-                var deviceInfo = new CameraDeviceInfo(cameraDevice[i].Type, cameraDevice[i].device,
-                    GetString(cameraDevice[i].name), GetString(cameraDevice[i].id));
-
-                cameraDeviceList.Add(deviceInfo);
+                var deviceInfo = GetDeviceInformation(devices[i]);
+                deviceList.Add(deviceInfo);
 
                 Log.Info(CameraLog.Tag, deviceInfo.ToString());
             }
 
-            return new ReadOnlyCollection<CameraDeviceInfo>(cameraDeviceList);
+            return new ReadOnlyCollection<CameraDeviceInformation>(deviceList);
         }
+
+        internal static CameraDeviceInformation GetDeviceInformation(Native.CameraDeviceStruct device) =>
+            new CameraDeviceInformation(device.Type, device.device, GetString(device.name), GetString(device.id));
 
         private static string GetString(char[] word)
         {
@@ -103,11 +116,11 @@ namespace Tizen.Multimedia
         }
 
         /// <summary>
-        /// An event that occurs when there is a change in the available camera device.
+        /// An event that occurs when camera device is connected or disconnected.
         /// </summary>
         /// <since_tizen> 9 </since_tizen>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        internal event EventHandler<CameraDeviceListChangedEventArgs> CameraDeviceListChanged;
+        public event EventHandler<CameraDeviceConnectionChangedEventArgs> DeviceConnectionChanged;
 
         private IntPtr Handle
         {
@@ -118,26 +131,22 @@ namespace Tizen.Multimedia
             }
         }
 
-        private int callbackId = 0;
-        private void RegisterDeviceListCallback()
+        private int connectionCallbackId = 0;
+        private void RegisterDeviceConnectionChangedCallback()
         {
-            Native.DeviceListChangedCallback callback = (ref Native.CameraDeviceListStruct deviceList, IntPtr userData) =>
+            Native.DeviceConnectionChangedCallback callback = (ref Native.CameraDeviceStruct device, bool status, IntPtr userData) =>
             {
-                CameraDeviceListChanged?.Invoke(this, new CameraDeviceListChangedEventArgs(ref deviceList));
+                DeviceConnectionChanged?.Invoke(this, new CameraDeviceConnectionChangedEventArgs(ref device, status));
             };
 
-            Native.SetDeviceListChangedCallback(Handle, callback, IntPtr.Zero, out callbackId).
-                ThrowIfFailed("Failed to set device list changed callback");
-
-            Log.Info(CameraLog.Tag, $"callback Id : {callbackId}");
+            Native.SetDeviceConnectionChangedCallback(Handle, callback, IntPtr.Zero, out connectionCallbackId).
+                ThrowIfFailed("Failed to set device connection changed callback");
         }
 
-        private void UnregisterDeviceListCallback()
+        private void UnregisterDeviceConnectionChangedCallback()
         {
-            Log.Info(CameraLog.Tag, $"callback Id : {callbackId}");
-
-            Native.UnsetDeviceListChangedCallback(Handle, callbackId).
-                ThrowIfFailed("Failed to unset device list changed callback");
+            Native.UnsetDeviceConnectionChangedCallback(Handle, connectionCallbackId).
+                ThrowIfFailed("Failed to unset device connection changed callback");
         }
 
         #region Dispose support
@@ -158,7 +167,8 @@ namespace Tizen.Multimedia
 
                 if (_handle != IntPtr.Zero)
                 {
-                    UnregisterDeviceListCallback();
+                    UnregisterDeviceConnectionChangedCallback();
+
                     Native.Deinitialize(_handle);
                     _handle = IntPtr.Zero;
                 }
@@ -194,30 +204,28 @@ namespace Tizen.Multimedia
     /// </summary>
     /// <since_tizen> 9 </since_tizen>
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public class CameraDeviceInfo
+    public class CameraDeviceInformation
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="CameraDeviceInfo"/> class.
+        /// Initializes a new instance of the <see cref="CameraDeviceInformation"/> class.
         /// </summary>
         /// <param name="type"><see cref="CameraDeviceType"/></param>
         /// <param name="device"><see cref="CameraDevice"/></param>
         /// <param name="name">The name of camera device</param>
         /// <param name="id">The ID of camera device</param>
-        /// <exception cref="ArgumentException">Invalid enumeration of empty string.</exception>
-        /// <exception cref="ArgumentNullException">name of id is null.</exception>
+        /// <exception cref="ArgumentException">Invalid enumeration.</exception>
+        /// <exception cref="ArgumentNullException">name or id is null.</exception>
         /// <since_tizen> 9 </since_tizen>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        internal CameraDeviceInfo(CameraDeviceType type, CameraDevice device, string name, string id)
+        internal CameraDeviceInformation(CameraDeviceType type, CameraDevice device, string name, string id)
         {
             ValidationUtil.ValidateEnum(typeof(CameraDeviceType), type, nameof(type));
             ValidationUtil.ValidateEnum(typeof(CameraDevice), device, nameof(device));
-            ValidationUtil.ValidateIsNullOrEmpty(name, nameof(name));
-            ValidationUtil.ValidateIsNullOrEmpty(id, nameof(id));
 
             Type = type;
             Device = device;
-            Name = name;
-            Id = id;
+            Name = name ?? throw new ArgumentNullException(nameof(name), "name is null");
+            Id = id ?? throw new ArgumentNullException(nameof(id), "id is null");
         }
 
         /// <summary>
@@ -251,5 +259,14 @@ namespace Tizen.Multimedia
         /// <since_tizen> 9 </since_tizen>
         [EditorBrowsable(EditorBrowsableState.Never)]
         public string Id { get; }
+
+        /// <summary>
+        /// Returns a string that represents the current object.
+        /// </summary>
+        /// <returns>A string that represents the current object.</returns>
+        /// <since_tizen> 9 </since_tizen>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public override string ToString() =>
+            $"Type:{Type.ToString()}, Device:{Device.ToString()}, Name:{Name}, Id:{Id}";
     }
 }

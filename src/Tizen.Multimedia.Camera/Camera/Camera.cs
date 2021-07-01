@@ -78,15 +78,15 @@ namespace Tizen.Multimedia
             try
             {
                 _cameraDeviceManager = new CameraDeviceManager();
-                cameraDeviceType = _cameraDeviceManager.GetDeviceInfo().First().Type;
-                Tizen.Log.Info(CameraLog.Tag, $"device type:{cameraDeviceType.ToString()}");
+                var deviceInfo = _cameraDeviceManager.GetDeviceInformation();
+                Log.Info(CameraLog.Tag, deviceInfo.ToString());
 
-                _cameraDeviceManager.CameraDeviceListChanged += CameraDeviceListChanged;
+                cameraDeviceType = deviceInfo.First().Type;
             }
             catch (NotSupportedException e)
             {
                 Tizen.Log.Info(CameraLog.Tag,
-                    $"CameraDeviceManager is not supported. {e.Message}");
+                    $"CameraDeviceManager is not supported. {e.Message}. Not error.");
             }
 
             if (cameraDeviceType == CameraDeviceType.BuiltIn ||

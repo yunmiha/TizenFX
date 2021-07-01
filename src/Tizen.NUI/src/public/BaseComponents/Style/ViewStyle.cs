@@ -29,6 +29,7 @@ namespace Tizen.NUI.BaseComponents
     {
         private bool disposed = false;
         private bool? focusable;
+        private bool? focusableInTouch;
         private bool? positionUsesPivotPoint;
         private Position parentOrigin;
         private Position pivotPoint;
@@ -77,6 +78,13 @@ namespace Tizen.NUI.BaseComponents
         }
 
         /// <summary>
+        /// The flag that is used when creating a component with this style.
+        /// If the value is true, it will include default component style defined in the default theme.
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public bool IncludeDefaultStyle { get; set; } = false;
+
+        /// <summary>
         /// Gets or sets the image resource url of the background of view.
         /// The mutually exclusive with "BackgroundColor". Setting it overwrites existing "BackgroundColor".
         /// </summary>
@@ -97,6 +105,18 @@ namespace Tizen.NUI.BaseComponents
         {
             get => (bool?)GetValue(FocusableProperty);
             set => SetValue(FocusableProperty, value);
+        }
+
+        /// <summary>
+        /// Whether this view can focus by touch.
+        /// If Focusable is false, FocusableInTouch is disabled.
+        /// If you want to have focus on touch, you need to set both Focusable and FocusableInTouch settings to true.
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public bool? FocusableInTouch
+        {
+            get => (bool?)GetValue(FocusableInTouchProperty);
+            set => SetValue(FocusableInTouchProperty, value);
         }
 
         /// This will be public opened in tizen_6.0 after ACR done. Before ACR, need to be hidden as inhouse API.
@@ -236,7 +256,6 @@ namespace Tizen.NUI.BaseComponents
         /// This view's size is set to the view's size multiplied by or added to this factor, depending on ResizePolicyType.<br />
         /// </summary>
         /// <since_tizen> 9 </since_tizen>
-        [Obsolete("Deprecated. Since Tizen.NUI.ResizePolicyType is deprecated, OnSetResizePolicy is no longer supported. Instead, please use parent view having Tizen.NUI.RelativeLayout as its Layout.")]
         public Vector3 SizeModeFactor
         {
             get => (Vector3)GetValue(SizeModeFactorProperty);
@@ -247,7 +266,6 @@ namespace Tizen.NUI.BaseComponents
         /// Gets or sets the width resize policy to be used.
         /// </summary>
         /// <since_tizen> 9 </since_tizen>
-        [Obsolete("Deprecated. Please set Tizen.NUI.View.Layout and use Tizen.NUI.View.WidthSpecification instead.")]
         public ResizePolicyType? WidthResizePolicy
         {
             get => (ResizePolicyType?)GetValue(WidthResizePolicyProperty);
@@ -258,7 +276,6 @@ namespace Tizen.NUI.BaseComponents
         /// Gets or sets the height resize policy to be used.
         /// </summary>
         /// <since_tizen> 9 </since_tizen>
-        [Obsolete("Deprecated. Please set Tizen.NUI.View.Layout and use Tizen.NUI.View.HeightSpecification instead.")]
         public ResizePolicyType? HeightResizePolicy
         {
             get => (ResizePolicyType?)GetValue(HeightResizePolicyProperty);
@@ -538,6 +555,8 @@ namespace Tizen.NUI.BaseComponents
                     SetValue(destinationProperty, sourceValue);
                 }
             }
+
+            IncludeDefaultStyle = source.IncludeDefaultStyle;
         }
 
         /// <summary>

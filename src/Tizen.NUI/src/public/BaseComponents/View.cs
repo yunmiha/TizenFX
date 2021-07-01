@@ -48,15 +48,6 @@ namespace Tizen.NUI.BaseComponents
         private TransitionOptions transitionOptions = null;
         private ThemeData themeData;
 
-        internal class ThemeData
-        {
-            public bool controlStatePropagation = false;
-            public ViewStyle viewStyle;
-            public bool themeChangeSensitive = false;
-            public ControlState controlStates = ControlState.Normal;
-            public ViewSelectorData selectorData;
-        }
-
         static View()
         {
             RegisterPropertyGroup(PositionProperty, positionPropertyGroup);
@@ -176,6 +167,7 @@ namespace Tizen.NUI.BaseComponents
         public static bool LayoutingDisabled { get; set; } = true;
 
         /// <summary>
+        /// Deprecate. Please do not use this.
         /// The style instance applied to this view.
         /// Note that please do not modify the ViewStyle.
         /// Modifying ViewStyle will affect other views with same ViewStyle.
@@ -225,7 +217,7 @@ namespace Tizen.NUI.BaseComponents
 
                 ControlStateChangeEventInternal?.Invoke(this, changeInfo);
 
-                if (themeData.controlStatePropagation)
+                if (themeData.ControlStatePropagation)
                 {
                     foreach (View child in Children)
                     {
@@ -916,6 +908,25 @@ namespace Tizen.NUI.BaseComponents
             get
             {
                 return (bool)GetValue(FocusableProperty);
+            }
+        }
+
+        /// <summary>
+        /// Whether this view can focus by touch.
+        /// If Focusable is false, FocusableInTouch is disabled.
+        /// If you want to have focus on touch, you need to set both Focusable and FocusableInTouch settings to true.
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public bool FocusableInTouch
+        {
+            set
+            {
+                SetValue(FocusableInTouchProperty, value);
+                NotifyPropertyChanged();
+            }
+            get
+            {
+                return (bool)GetValue(FocusableInTouchProperty);
             }
         }
 
@@ -1706,7 +1717,6 @@ namespace Tizen.NUI.BaseComponents
         /// The property cascade chaining set is possible. For example, this (view.DecorationBoundingBox.X = 0.1f;) is possible.
         /// </remarks>
         /// <since_tizen> 3 </since_tizen>
-        [Obsolete("Deprecated. Since Tizen.NUI.ResizePolicyType is deprecated, SizeModeFactor is no longer supported. Instead, please use parent view having Tizen.NUI.RelativeLayout as its Layout.")]
         public Vector3 SizeModeFactor
         {
             get
@@ -1725,7 +1735,6 @@ namespace Tizen.NUI.BaseComponents
         /// Gets or sets the width resize policy to be used.
         /// </summary>
         /// <since_tizen> 3 </since_tizen>
-        [Obsolete("Deprecated. Please set Layout and use WidthSpecification instead.")]
         public ResizePolicyType WidthResizePolicy
         {
             get
@@ -1743,7 +1752,6 @@ namespace Tizen.NUI.BaseComponents
         /// Gets or sets the height resize policy to be used.
         /// </summary>
         /// <since_tizen> 3 </since_tizen>
-        [Obsolete("Deprecated. Please set Layout and use HeightSpecification instead.")]
         public ResizePolicyType HeightResizePolicy
         {
             get
@@ -2507,14 +2515,14 @@ namespace Tizen.NUI.BaseComponents
         [EditorBrowsable(EditorBrowsableState.Never)]
         public bool EnableControlStatePropagation
         {
-            get => themeData?.controlStatePropagation ?? false;
+            get => themeData?.ControlStatePropagation ?? false;
             set
             {
                 if (EnableControlStatePropagation == value) return;
 
                 if (themeData == null) themeData = new ThemeData();
 
-                themeData.controlStatePropagation = value;
+                themeData.ControlStatePropagation = value;
 
                 foreach (View child in Children)
                 {
@@ -2591,7 +2599,7 @@ namespace Tizen.NUI.BaseComponents
 
         /// <summary>
         /// If the value is true, the View will change its style as the theme changes.
-        /// It is false by default, but turned to true when setting StyleName (by setting property or using specified constructor).
+        /// The default value is false in normal case but it can be true when the NUIApplication is created with <see cref="NUIApplication.ThemeOptions.ThemeChangeSensitive"/>.
         /// </summary>
         /// <since_tizen> 9 </since_tizen>
         public bool ThemeChangeSensitive
@@ -2623,7 +2631,8 @@ namespace Tizen.NUI.BaseComponents
         [EditorBrowsable(EditorBrowsableState.Never)]
         protected virtual void OnThemeChanged(object sender, ThemeChangedEventArgs e)
         {
-            UpdateStyle();
+            if (string.IsNullOrEmpty(styleName)) ApplyStyle(ThemeManager.GetUpdateStyleWithoutClone(GetType()));
+            else ApplyStyle(ThemeManager.GetUpdateStyleWithoutClone(styleName));
         }
 
         /// <summary>

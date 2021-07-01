@@ -378,6 +378,18 @@ namespace Tizen.NUI
                     Geometry horizontalGeometry = GetHorizontalLayout(childLayout.Owner);
                     Geometry verticalGeometry = GetVerticalLayout(childLayout.Owner);
 
+                    // MeasureChildWithMargins() is called to assign child's MeasuredWidth/Height to calculate grand children's sizes correctly.
+                    // Grand children's positions are calculated correctly only if their sizes are calculated correctly.
+                    // MeasureChildWithMargins() should be called before childLayout.Layout() to use childLayout's MeasuredWidth/Height
+                    // when the grand children's positions are calculated.
+                    //
+                    // FIXME: It would be better if MeasureChildWithMargins() are called in OnMeasure() to separate Measure and Layout calculations.
+                    //        For now, not to call duplicate GetHorizontalLayout() and GetVerticalLayout() in both OnMeasure() and OnLayout(),
+                    //        MeasureChildWithMargins() is called here.
+                    MeasureChildWithMargins(childLayout,
+                                            new MeasureSpecification(new LayoutLength(horizontalGeometry.Size), MeasureSpecification.ModeType.Exactly), new LayoutLength(0),
+                                            new MeasureSpecification(new LayoutLength(verticalGeometry.Size), MeasureSpecification.ModeType.Exactly), new LayoutLength(0));
+
                     LayoutLength childLeft = new LayoutLength(horizontalGeometry.Position + Padding.Start + childLayout.Margin.Start);
                     LayoutLength childRight = new LayoutLength(horizontalGeometry.Position + horizontalGeometry.Size + Padding.Start - childLayout.Margin.End);
                     LayoutLength childTop = new LayoutLength(verticalGeometry.Position + Padding.Top + childLayout.Margin.Top);

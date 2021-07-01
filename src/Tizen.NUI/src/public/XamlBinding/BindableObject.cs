@@ -352,6 +352,11 @@ namespace Tizen.NUI.Binding
             {
                 PropertyToGroup.Add(property, group);
             }
+
+            if (null != group && !(group.Contains(property)))
+            {
+                group.Add(property);
+            }
         }
         /// <summary>
         /// Apply the bindings to BindingContext.
@@ -840,7 +845,7 @@ namespace Tizen.NUI.Binding
             context.Binding = null;
         }
 
-        void SetValue(BindableProperty property, object value, bool fromStyle, bool checkAccess)
+        internal void SetValue(BindableProperty property, object value, bool fromStyle, bool checkAccess)
         {
             if (property == null)
                 throw new ArgumentNullException(nameof(property));

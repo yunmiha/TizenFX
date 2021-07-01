@@ -83,7 +83,7 @@ namespace Tizen.NUI.Components
         defaultValueCreator: (bindable) => ((Button)bindable).isEnabled);
         /// This will be public opened in tizen_6.0 after ACR done. Before ACR, need to be hidden as inhouse API.
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public static readonly BindableProperty IsSelectedProperty = BindableProperty.Create(nameof(IsSelected), typeof(bool), typeof(Button), true, propertyChanged: (bindable, oldValue, newValue) =>
+        public static readonly BindableProperty IsSelectedProperty = BindableProperty.Create(nameof(IsSelected), typeof(bool), typeof(Button), false, propertyChanged: (bindable, oldValue, newValue) =>
         {
             var instance = (Button)bindable;
             if (newValue != null)
@@ -340,7 +340,7 @@ namespace Tizen.NUI.Components
         }
 
         /// <summary>
-        /// Return currently applied style.
+        /// The last applied style object copy.
         /// </summary>
         /// <remarks>
         /// Modifying contents in style may cause unexpected behaviour.
@@ -799,6 +799,7 @@ namespace Tizen.NUI.Components
 
                 if (buttonStyle.Text != null)
                 {
+                    buttonText.ThemeChangeSensitive = false;
                     buttonText.ApplyStyle(buttonStyle.Text);
                 }
 
